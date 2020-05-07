@@ -22,7 +22,7 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   fit <- glmQLFit(dge, design = design)
   qlf <- glmQLFTest(fit)
   tt <- topTags(qlf, n = Inf)
-  df <- tt@.Data[[1]]
+  df <- signif(tt@.Data[[1]], 3)
   df$gene <- rownames(df)
   
   # small function to pull CPM
@@ -47,14 +47,13 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   df$logFC <- round(df$logFC,2)
   df$logCPM <- round(df$logCPM,2)
   df$signedTstat <- sign(df$logFC) * sqrt(round(df$F,2))
-  
   df
   
 }
 
 
 # Import
-so <- readRDS("../output/5March-PearsonRNAseq-integration.rds")
+so <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-integration.rds")
 counts <- so@assays$RNA@counts
 df <- so@meta.data
 df$barcode <- rownames(df)
@@ -79,8 +78,7 @@ list_of_de_mats <- lapply(cts_go, function(ct){
   dfo
 })
 melted_list <- rbindlist(list_of_de_mats) %>% arrange(FDR)
-melted_list %>% filter(FDR < 1e-4) %>% arrange(desc(abs(logFC)))
-saveRDS(melted_list, file = "../output/5March-PearsonRNAseq-diffGE-edgeR.rds")
+melted_list %>% arrange(desc(abs(logFC)))
+saveRDS(melted_list, file = "../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-diffGE-edgeR.rds")
 
-ggplot(melted_list %>%  filter(celltype ==  "NK-cells"), aes(x = logFC, y = -log10(FDR + 1e-100))) +
-  geom_point()
+

@@ -1,3 +1,7 @@
+pbmc_scrna/output/cellphonedb_data/*/*
+pbmc_scrna/output/cellphonedb_data/*
+
+
 # History files
 .Rhistory
 .Rapp.history

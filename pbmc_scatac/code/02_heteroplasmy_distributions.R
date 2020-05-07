@@ -17,7 +17,7 @@ het_df <- rbind(df_BCI, df_CCF, df_PT3)
 meta_data <- readRDS("../../../pearson_mtscatac_large_data_files/output/scATAC_labelTransfer_HQcells.rds")@meta.data
 
 
-bdf <- merge(meta_data, het_df, by = "barcode")
+bdf <- merge(meta_data, het_df, by = "barcode") %>% filter(reads_all > 20)
 
 exclude_celltypes <- c("CCF cell 1", "IFN-activated T-cells", "Innate-like B-cells")
 ggplot(bdf %>% filter(predicted.id %ni% exclude_celltypes), aes(x = predicted.id, y = heteroplasmy, color = Patient)) +

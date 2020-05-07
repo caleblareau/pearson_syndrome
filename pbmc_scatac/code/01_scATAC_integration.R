@@ -146,6 +146,8 @@ pbmc2 <- NormalizeData(
 )
 rm(pbmc_no_integration)
 DefaultAssay(object = pbmc2) <- "RNA"
+#saveRDS(pbmc2, file = "../../../pearson_mtscatac_large_data_files/output/6May_Pearson_patients_processedSeuratObject_ATAC.rds")
+
 
 # Import RNA-seq data to handle the co-embedding
 pbmc_rna <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-integration.rds")
@@ -161,7 +163,7 @@ transfer.anchors <- FindTransferAnchors(
 )
 
 # Predict cell types using data transfering
-celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbmc_rna$celltype, 
+celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = pbmc_rna$seurat_clusters, 
                                      weight.reduction = pbmc2[["lsi"]])
 pbmc2 <- AddMetaData(pbmc2, metadata = celltype.predictions)
 prediction.score.max <- pbmc2$prediction.score.max

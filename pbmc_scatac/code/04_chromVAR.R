@@ -28,6 +28,7 @@ df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasm
   filter(deletion == "del10381-15407") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-3", cell_id))
 
 het_df <- rbind(df_BCI, df_CCF, df_PT3)
+md <- pbmc@meta.data
 bdf <- merge(md, het_df, by = "barcode") %>% group_by(patient) %>% mutate(scaled_heteroplasmy = scale(heteroplasmy, scale = FALSE))
 
 # Format counts data for chromVAR
@@ -53,6 +54,7 @@ dev <- computeDeviations(object = SE,  annotations = mm)
 devmat <- assays(dev)[["deviations"]][,bdf$barcode]
 row.names(devmat) <- make.unique(unname(rowData(dev)$name))
 
+# Look at the association between each TF and the 
 compute_dev_assoc <- function(test_celltype){
   
   cells_df <- bdf %>% filter(predicted.id == test_celltype) 
@@ -63,9 +65,11 @@ compute_dev_assoc <- function(test_celltype){
     data.frame(
       TF = rownames(ss_mat)[idx],
       Celltype = test_celltype,
+      cor_pearson = cor(ss_mat[idx,], het_vec,use = "pairwise.complete.obs"),
+      cor_spearman = cor(ss_mat[idx,], het_vec,use = "pairwise.complete.obs", method = "spearman"),
       data.frame(matrix(summary(lm(ss_mat[idx,]~het_vec))$coefficients[2,], nrow = 1))[,c(1,3,4)]
     ) -> df
-    colnames(df) <- c("TF", "celltype","cvEstimate", "cvT_stat", "cv_pval")
+    colnames(df) <- c("gene", "celltype","cor_pearson", "cor_spearman","cvEstimate", "cvT_stat", "cv_pval")
     df
   }) %>% rbindlist() %>% data.frame() -> odf
   
@@ -74,14 +78,24 @@ compute_dev_assoc <- function(test_celltype){
   adf
 }
 
+# Compute per cell type
 test_celltypes <- names(table(md$predicted.id))[table(md$predicted.id) > 200]
 lapply(test_celltypes, function(test_celltype){
   print(test_celltype)
   compute_dev_assoc(test_celltype)
 }) %>% rbindlist() %>% data.frame() %>% arrange(cv_pval) -> all_assocs_chromvar
 
-all_assocs_chromvar %>% group_by(celltype) %>%
-  summarize(sum(cv_pval_p < 0.01))
+saveRDS(all_assocs_chromvar, file = "../../../pearson_mtscatac_large_data_files/output/PBMC_scATAC_chromVAR_cors.rds")
 
-all_assocs_chromvar %>% group_by(celltype) %>%
-  top_n(2, wt = -log10(cv_pval_p)) %>% data.frame()
+# Import diff RNA-seq
+rna_df <- readRDS("../../pbmc_scrna/output/5March-PearsonRNAseq-diffGE-edgeR.rds")
+merge_go_df <- merge(rna_df, all_assocs_chromvar, by = c("celltype", "gene"))
+
+"%ni%" <- Negate("%in%")
+ggplot(merge_go_df, aes(x = logFC, y = cor_pearson, color = gene %in% c("FOS", "FOSB", "JUN", "JUNB"))) +
+  geom_point() + facet_wrap(~celltype) + labs(x = "log FC WT / Pearson", y = "Deviation score correlation with heteroplasmy") +
+  pretty_plot() + theme(legend.position = "bottom") + scale_color_manual(values = c("black", "red"))
+
+merge_go_df %>% filter(gene %ni% c("FOS", "FOSB", "JUN", "JUNB")) %>% filter(logFC < -1) %>%
+  filter(cor_spearman < -0.1)
+merge_go_df %>% filter(gene %in% "ATF4")

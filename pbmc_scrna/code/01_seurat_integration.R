@@ -89,7 +89,7 @@ new.cluster.ids <- c(
   '2'='Memory CD4+ T-cells',
   '3'='Naive CD8+ T-cells',
   '4'='Effector CD8+ T-cells',
-  '5'='Activated B-cells',
+  '5'='Naive B-cells',
   '6'="NK-cells",
   '7'='Memory B-cells',
   '8'='CD16+ Monocytes',
@@ -111,7 +111,7 @@ new.cluster.ids <- c(
 
 fm <- FindMarkers(pbmc.integrated, ident.1 = "CCF cell 2", min.pct = 0.3)
 
-# Make
+# Make plots for a supplement
 if(FALSE){
   counts_df <- pbmc.integrated@meta.data %>% group_by(source, celltype) %>% summarize(n = n()) %>% ungroup() %>% 
     group_by(source) %>% mutate(prop = round(n/sum(n)*100,1)) %>% ungroup() %>%
@@ -127,7 +127,7 @@ if(FALSE){
     'NK-like T-cells',
     "NK-cells",
     'CD56 bright NK-cell',
-    'Activated B-cells',
+    'Naive B-cells',
     'Memory B-cells',
     'Innate-like B-cells',
     'CD14+ Monocytes',
@@ -169,7 +169,7 @@ fpcl <- function(feature){
 ggsave(plot_grid(fpcl("CD14"), fpcl("FCGR3A"), fpcl("FCER1A"),  fpcl("IL3RA"), fpcl("CLEC9A"), ncol = 5), 
        file = "../plots/Monocyte.png",width = 14, height = 3, dpi = 1000)
 
-ggsave(plot_grid(fpcl("PPBP"),  fpcl("MS4A1"), fpcl("CD27"), fpcl("TCL1A"), fpcl("MZB1"), ncol = 5), 
+ggsave(plot_grid(fpcl("PPBP"),  fpcl("MS4A1"), fpcl("CD27"), fpcl("FCER2"), fpcl("MZB1"), ncol = 5), 
        file = "../plots/rare_Bcell.png", width = 14, height = 3, dpi = 500)
 
 ggsave(plot_grid(fpcl("CCL5"),  fpcl("CD3D"), fpcl("GZMK"), fpcl("NCAM1"), fpcl("CD8A"), ncol = 5), 
@@ -181,6 +181,6 @@ ggsave(plot_grid(fpcl("CCR7"),  fpcl("CD4"), fpcl("S100A4"), fpcl("TRDC"), fpcl(
 ggsave(plot_grid(fpcl("G2M.Score"), ncol = 1), 
        file = "../plots/G2M_score.png", width = 2.8, height = 3, dpi = 500)
 
- Idents(pbmc.integrated) <- new.cluster.ids[as.character(pbmc.integrated@meta.data$integrated_snn_res.0.5)]
+Idents(pbmc.integrated) <- new.cluster.ids[as.character(pbmc.integrated@meta.data$integrated_snn_res.0.5)]
 pbmc.integrated$celltype <- Idents(pbmc.integrated)
-saveRDS(pbmc.integrated, "../output/5March-PearsonRNAseq-integration.rds")
+saveRDS(pbmc.integrated, "../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-integration.rds")
