@@ -55,12 +55,16 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
 # Import
 so <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-integration.rds")
 counts <- so@assays$RNA@counts
+counts <- counts[!grepl("^RP|^MT", rownames(counts)),]
+
 df <- so@meta.data
 df$barcode <- rownames(df)
 
 cts <- unique(sort(as.character(df$celltype)))
 boo_ct <- table((sort(as.character(df$celltype)))) > 250 & cts %ni% c( "low count 1", "CCF cell 1")
 cts_go <- cts[boo_ct]
+
+
 list_of_de_mats <- lapply(cts_go, function(ct){
   print(ct)
   
@@ -77,6 +81,7 @@ list_of_de_mats <- lapply(cts_go, function(ct){
   dfo$celltype <- ct
   dfo
 })
+
 melted_list <- rbindlist(list_of_de_mats) %>% arrange(FDR)
 melted_list %>% arrange(desc(abs(logFC)))
 saveRDS(melted_list, file = "../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-diffGE-edgeR.rds")

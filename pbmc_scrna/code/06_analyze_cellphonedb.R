@@ -6,23 +6,23 @@ keep_vars <- c( "id_cp_interaction","interacting_pair","partner_a",
 
 
 p_bci <- fread("../output/cellphonedb_data/pBCI_cellphonedb_out/pvalues.txt") %>% 
-  reshape2::melt(id.vars = keep_vars) %>% filter(value < 0.5) %>%
+  reshape2::melt(id.vars = keep_vars) %>% dplyr::filter(value < 0.5) %>%
   mutate(duo = paste0(interacting_pair, "...", variable)) %>% pull(duo)
 
 p_ccf <- fread("../output/cellphonedb_data/pCCF_cellphonedb_out/pvalues.txt") %>% 
-  reshape2::melt(id.vars = keep_vars) %>% filter(value < 0.002) %>%
+  reshape2::melt(id.vars = keep_vars) %>% dplyr::filter(value < 0.002) %>%
   mutate(duo = paste0(interacting_pair, "...", variable)) %>% pull(duo)
 
 p_pt3 <- fread("../output/cellphonedb_data/pPT3_cellphonedb_out/pvalues.txt") %>% 
-  reshape2::melt(id.vars = keep_vars) %>% filter(value < 0.002) %>%
+  reshape2::melt(id.vars = keep_vars) %>% dplyr::filter(value < 0.002) %>%
   mutate(duo = paste0(interacting_pair, "...", variable)) %>% pull(duo)
 
 p_h1 <- fread("../output/cellphonedb_data/H1_cellphonedb_out/pvalues.txt") %>% 
-  reshape2::melt(id.vars = keep_vars) %>% filter(value < 0.002) %>%
+  reshape2::melt(id.vars = keep_vars) %>% dplyr::filter(value < 0.002) %>%
   mutate(duo = paste0(interacting_pair, "...", variable)) %>% pull(duo)
 
 p_h2 <- fread("../output/cellphonedb_data/H2_cellphonedb_out/pvalues.txt") %>% 
-  reshape2::melt(id.vars = keep_vars) %>% filter(value < 0.002) %>%
+  reshape2::melt(id.vars = keep_vars) %>% dplyr::filter(value < 0.002) %>%
   mutate(duo = paste0(interacting_pair, "...", variable)) %>% pull(duo)
 
 both_healthy <- intersect(p_h1, p_h2)
