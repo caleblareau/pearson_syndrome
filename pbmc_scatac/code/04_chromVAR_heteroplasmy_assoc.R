@@ -140,11 +140,12 @@ p4 <- ggplot(viz_df, aes(x = val, color = what)) +
 
 cowplot::ggsave2(cowplot::plot_grid(p1, p2, p3, p4, nrow = 1), file = "../output/scATAC_4panels.pdf", width = 4.4, height = 1.1)
 
+all_assocs_chromvar$celltype <- gsub("Activated B-cells", "Naive B-cells", all_assocs_chromvar$celltype)
 pB <- ggplot(all_assocs_chromvar, aes( x= patient, y = celltype, fill = cor_spearman)) +
   geom_tile() + labs(x = "", y = "", fill = "") + pretty_plot(fontsize = 7) + L_border() +
   scale_fill_gradientn(colours = c("dodgerblue4", "white", "red"),
-                       values = c(0, 0.687, 1)) + 
-  scale_y_discrete(limits = rev(levels(all_assocs_chromvar$celltype)), expand = c(0,0)) +
+                       limits = c(-0.36, 0.36)) + 
+  scale_y_discrete(limits = rev(sort(unique(all_assocs_chromvar$celltype))), expand = c(0,0)) +
   scale_x_discrete(expand = c(0,0)) +
   theme(legend.position = "bottom")
 
