@@ -33,7 +33,7 @@ p2 <- df[,c("gene", "celltype", "H1v2", "H2v3", "pBCI", "pCCF", "pPT3")] %>% fil
 
 p3 <- df[,c("gene", "celltype", "H1v2", "H2v3", "pBCI", "pCCF", "pPT3")] %>% filter(gene %in% c("CXCL14")) %>%
   reshape2::melt(id.vars = c("gene", "celltype")) %>% 
-  ggplot(aes(x = variable, y = celltype, fill = log2(value + 1))) +
+  ggplot(aes(x = variable, y = celltype, fill = (value ))) +
   geom_tile() +
   scale_fill_gradientn(colors = jdb_palette("solar_rojos")) +
   scale_x_discrete(expand = c(0,0)) +
