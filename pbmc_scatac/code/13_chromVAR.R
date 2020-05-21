@@ -48,4 +48,14 @@ dev <- computeDeviations(object = SE,  annotations = mm)
 colData(dev)$predicted.id <- gsub("Activated B-cells", "Naive B-cells", colData(dev)$predicted.id )
 saveRDS(dev, file = "../../../pearson_mtscatac_large_data_files/output/PBMC_scATAC_healthy_pearson_deviations.rds")
 
+# Compare healthy / normal
+dev <- readRDS("../../../pearson_mtscatac_large_data_files/output/PBMC_scATAC_healthy_pearson_deviations.rds")
+df <- data.frame(colData(dev),t(assays(dev)[["deviations"]][rowData(dev)$name %in% c("JUN", "FOS", "JUNB", "FOSB", "KLF4"),]))
 
+df %>% group_by(predicted.id, Patient) %>% 
+  summarize(
+    KLF4 = median(ENSG00000136826_LINE939_KLF4_D),
+    FOSB = median(ENSG00000125740_LINE393_FOSB_D), 
+    FOS = median(ENSG00000170345_LINE476_FOS_D_N4), 
+    JUN = median(ENSG00000177606_LINE517_JUN_D_N5), 
+    JUNB = median(ENSG00000171223_LINE487_JUNB_D_N3)) %>% data.frame()
