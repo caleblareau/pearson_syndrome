@@ -37,6 +37,17 @@ bdf$coarse <- case_when(
   TRUE ~ "other"
 )
 
+library(ggbeeswarm)
+bdf$predicted.id <- gsub("Activated B-cells", "Naive B-cells", bdf$predicted.id)
+exclude_celltypes <- c("CCF cell 1", "IFN-activated T-cells", "Innate-like B-cells")
+pbig <- ggplot(bdf %>% dplyr::filter(predicted.id %ni% exclude_celltypes), aes(x = predicted.id, y = heteroplasmy)) +
+  geom_quasirandom(size = 0.2) + geom_boxplot(color = "dodgerblue2", outlier.shape = NA, fill = NA) + 
+  facet_grid(Patient~coarse, scales = "free_x", space = "free_x") +
+  pretty_plot(fontsize = 8) + labs (x = "", y = "Heteroplasmy") +
+  stat_summary(fun=mean, geom="point", size=1, color="purple2", fill="purple2", shape = 15) 
+cowplot::ggsave2(pbig, file = "../output/giant_grid.pdf", width = 7.8, height = 4)
+
+
 p1 <- ggplot(bdf %>% dplyr::filter(coarse != "other" & Patient == "BCI"), aes(x = heteroplasmy, color = coarse)) +
   stat_ecdf() + pretty_plot(fontsize = 8) + L_border() + theme(legend.position = "none") + scale_x_continuous(limits = c(0,100)) +
   labs(x = "Heteroplasmy", y = "Cumulative proportion", color = "celltype") +

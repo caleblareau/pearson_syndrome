@@ -5,9 +5,11 @@ library(data.table)
 library(BuenColors)
 
 # Prepare gene set
-ap1_genes <- fread("../misc/AP1_targets_Harmonizome.txt", header = FALSE)[[1]]
-pathways <- list(ap1_genes)
-names(pathways) <- c("AP1targets")
+ap1_genes <- fread("../data/misc/AP1_targets_Harmonizome.txt", header = FALSE)[[1]]
+s <- fread("../data/misc/senescence_up_genes_C2_fridman.tsv", header = FALSE)[[1]]
+
+pathways <- list(ap1_genes, s)
+names(pathways) <- c("AP1targets", "senescence")
 
 # Import genes
 diff_df <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-diffGE-edgeR.rds")
@@ -15,7 +17,7 @@ diff_df <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-Pea
 lapply(unique(diff_df$celltype), function(ct){
   print(ct)
   ct_df <- diff_df %>% filter(celltype == ct)
-  vec <- ct_df$logFC
+  vec <- ct_df$signedTstat
   
   names(vec) <- as.character(ct_df$gene)
   
@@ -31,7 +33,7 @@ enrich_out_all %>%
   mutate(log10padj = -1 * log10(padj)) %>%
   arrange(desc(log10padj)) -> plot_df
 
-plot_bar <- ggplot(plot_df, aes(y = celltype, x = log10padj)) +
+plot_bar <- ggplot(plot_df %>% dplyr::filter(pathway == "AP1targets"), aes(y = celltype, x = log10padj)) +
   geom_bar(stat = "identity", fill = jdb_palette("brewer_spectra")[2], color = "black") +
   pretty_plot(fontsize = 7) + L_border() +
   scale_y_discrete(limits = rev((unique(plot_df$celltype))), expand = c(0,0)) +
