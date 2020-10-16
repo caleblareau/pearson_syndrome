@@ -4,18 +4,15 @@ library(dplyr)
 "%ni%" <- Negate("%in%")
 
 df_BCI <- fread("../data/deletion_heteroplasmy/del_PBMC_BCI.deletion_heteroplasmy.tsv") %>%
-  dplyr::filter(reads_all>=20) %>% 
   dplyr::filter(deletion == "del6073-13095") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-1", cell_id)) %>%
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
 df_CCF <- fread("../data/deletion_heteroplasmy/del_PBMC_CCF.deletion_heteroplasmy.tsv") %>%
-  dplyr::filter(reads_all>=20) %>% 
   dplyr::filter(deletion == "del8482-13447") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-2", cell_id)) %>%
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
 df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasmy.tsv") %>%
   dplyr::filter(deletion == "del10381-15407") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-3", cell_id)) %>%
-  dplyr::filter(reads_all>=20) %>% 
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
 het_df <- rbind(df_BCI, df_CCF, df_PT3)
@@ -25,7 +22,7 @@ meta_data <- data.frame(
   so@meta.data,
   so@reductions$umap@cell.embeddings
 )
-bdf <- merge(meta_data, het_df, by = "barcode") %>% dplyr::filter(reads_all >= 20)
+bdf <- merge(meta_data, het_df, by = "barcode") 
 
 pi <- bdf$predicted.id
 bdf$coarse <- case_when(

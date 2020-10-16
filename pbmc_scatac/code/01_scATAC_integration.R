@@ -171,6 +171,5 @@ hist(prediction.score.max)
 abline(v = 0.5, col = "red")
 pbmc2$predicted.id <- pbmc2$predicted.id
 
-DimPlot(pbmc2, group.by = "predicted.id")
 
 saveRDS(pbmc2, file = "../../../pearson_mtscatac_large_data_files/output/scATAC_labelTransfer_HQcells.rds")

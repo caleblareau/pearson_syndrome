@@ -10,20 +10,26 @@ options(future.globals.maxSize = 4000 * 1024^2)
 # Import
 import_scRNAseq <- function(dir_base, name, pheno){
   data.dir <- paste0("../data/", dir_base)
-  raw <- Read10X(data.dir = data.dir); colnames(raw) <- paste0(name, "-", colnames(raw))
+  raw <- Read10X(data.dir = data.dir)
+  colnames(raw) <- paste0(substr(colnames(raw), 1, 16), "-1")
   
   # import scrublet results
   singlets <- fread(paste0("../data/scrublet_out/", dir_base, ".scrub.tsv")) %>%
     data.frame() %>% dplyr::filter(!called) %>% pull(barcode)
+
+  # Remove crazy high and low expressors
+  n_feature_rna <- colSums(raw > 0)
+  n_total_rna <- colSums(raw)
+  pct_mito <- colSums(raw[grepl("^MT", rownames(raw)), ])/n_total_rna * 100
+  qc_cells <- colnames(raw)[pct_mito < 10 & n_total_rna > 1000 & n_feature_rna > 500]
   
-  # Filter for singlet genes adn non-mitos
-  raw <- raw[!grepl("^MT", rownames(raw)),paste0(name, "-", substr(singlets,1,16))]
-  raw <- CreateSeuratObject(counts = raw,  min.cells = 3, min.features = 200); raw$source <- name; raw$pheno <- pheno
-  #raw <- SCTransform(raw)
-  raw <- NormalizeData(raw)
+  # Filter for singlet cells and non-mito genes
+  raw <- raw[!grepl("^MT", rownames(raw)), intersect(singlets, qc_cells)]
+  raw <- CreateSeuratObject(counts = raw, project = "RNA")
   raw <- FindVariableFeatures(raw)
+  raw <- NormalizeData(raw)
+  raw <- ScaleData(raw)
   raw
-  
 }
 
 # Import

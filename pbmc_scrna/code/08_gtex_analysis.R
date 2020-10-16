@@ -42,4 +42,4 @@ p2 <- ggplot(all_df, aes(x = what, y = GPR85)) +
 
 
 cowplot::ggsave2(cowplot::plot_grid(p1, p2, ncol = 1), 
-                 file = "../plots/GTEx_GPR85_CXCL14.pdf", width = 1.5, height = 2.2)
+                 file = "../plots/GTEx_GPR85_CXCL14.pdf", width = 1.2, height = 2.2)
