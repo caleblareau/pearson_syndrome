@@ -118,8 +118,8 @@ DefaultAssay(pearson_asap) <- "ADT"
 FeaturePlot(object = pearson_asap, c("CD71", "CD3-1", "CD19", "CD14", "CD8a",
                                      "CD35", "CD4-1", "CD21"),
             max.cutoff = "q90", cols =jdb_palette("brewer_spectra")) 
-FindMarkers(pearson_asap, ident.1 = "0", ident.2 = "10") %>% head(100)
-FindMarkers(pearson_asap, ident.1 = "2", ident.2 = "8")%>% head(100)
+FindMarkers(pearson_asap, ident.1 = "0", ident.2 = "10") %>% head(20)
+FindMarkers(pearson_asap, ident.1 = "2", ident.2 = "8")%>% head(20)
 
 FeaturePlot(object = pearson_asap, c("CD25", "CD31"),
             max.cutoff = "q90", cols =jdb_palette("brewer_spectra")) 
@@ -135,8 +135,8 @@ pearson_asap <- NormalizeData(
 )
 
 DefaultAssay(pearson_asap) <- "ACTIVITY"
-FeaturePlot(object = pearson_asap, c("IL8", "CR2"),
-            max.cutoff = "q90")
+FeaturePlot(object = pearson_asap, c("TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
+            max.cutoff = "q95")
 
 # Annotate with MDS stuff
 FeaturePlot(object = pearson_asap, "pct_in_del", max.cutoff = "q95", min.cutoff = "q05") +

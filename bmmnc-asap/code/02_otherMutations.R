@@ -22,6 +22,6 @@ af_df <- (data.frame(t(af) , barcode = colnames(af)))
 df <- data.frame(pbmc@reductions$umap@cell.embeddings, cluster = pbmc@meta.data$seurat_clusters, 
                  barcode = rownames(pbmc@meta.data),  heteroplasmy = pbmc@meta.data$heteroplasmy)
 mdf <- merge(af_df, df)
-sort(cor(data.matrix(mdf))["heteroplasmy",])
+(data.matrix(mdf))["heteroplasmy",])
 
-ggplot(mdf, aes(x =   X14476G.A , y = heteroplasmy)) + geom_point()
+ggplot(mdf, aes(x =    X7836T.C , y = heteroplasmy)) + geom_point()

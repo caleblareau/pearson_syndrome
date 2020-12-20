@@ -3,14 +3,15 @@ library(ggbeeswarm)
 library(BuenColors)
 
 "%ni%" <- Negate("%in%")
-del_het <- fread("Pearson-Mix-5_v12-mtMask_mgatk/final/tryall5Sample_dels.deletion_heteroplasmy.tsv")
+del_het <- fread("../data/tryall5Sample_dels.deletion_heteroplasmy.tsv")
 colnames(del_het) <- c("cell_id","heteroplasmy","reads_del","reads_wt","reads_all","bp_j","deletion", "what")
 
-assign_df <- fread("output/firstpass_assignments.tsv")
+assign_df <- fread("/oak/stanford/groups/akundaje/clareau/tenx-scatac/20201104_pearson_erythroid_processing/PearsonMix5_souporcell/clusters.tsv")
 bdf <- merge(del_het, assign_df, by.x = "cell_id", by.y = "barcode")
 
-ggplot(bdf %>% filter(deletion %in% c("del13157-15477", "del9232-13413" ,"del8482-13445") & what == "improved"),
-       aes(x = classify, y = heteroplasmy, color = (reads_del == 1))) +
+ggplot(bdf %>% filter(deletion %in% c("del13157-15477", "del9232-13413" ,"del8482-13445") & 
+                        what == "improved" & status == "singlet" & (reads_all > 20)),
+       aes(x = assignment, y = heteroplasmy, color = (reads_del == 1))) +
   geom_quasirandom() + facet_grid(~deletion) + 
   pretty_plot() + L_border() + labs(x = "Donor annotation", y = "Heteroplasmy %", color = "# reads for del")
 

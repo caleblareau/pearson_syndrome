@@ -42,16 +42,19 @@ pBCI <- import_scRNAseq("pearson_bci", "pBCI", "Pearson")
 pCCF <- import_scRNAseq("pearson_ccf", "pCCF", "Pearson")
 pPT3 <- import_scRNAseq("pearson_mds", "pPT3", "Pearson")
 
-merge_all <- merge(merge(merge(pbmc1, pbmc2, add.cell.ids = c("h1", "h2")), merge(pbmc3, pbmc4, add.cell.ids = c("h3", "h4"))),
+merge_all <- merge(merge(pbmc1, pbmc2, add.cell.ids = c("h1", "h2")),
                  merge(merge(pBCI, pCCF, add.cell.ids = c("p1", "p2")), pPT3, add.cell.ids = c("", "p3")))
-features <- SelectIntegrationFeatures(object.list = list(pBCI, pCCF, pPT3, pbmc1, pbmc2, pbmc3, pbmc4))
+features <- SelectIntegrationFeatures(object.list = list(pBCI, pCCF, pPT3, pbmc1))
+features <- pPT3@assays$RNA@var.features
 merge_all <- ScaleData(merge_all, features = features, do.scale = FALSE)
 merge_all <- RunPCA(merge_all, verbose = FALSE, features = features)
-merge_all$cc <- substr(colnames(merge_all),1,1)
-merge_all <- merge_all %>%  RunHarmony(c("cc"))
+merge_all$cc <- substr(colnames(merge_all),1,2)
 merge_all$cp <- substr(colnames(merge_all),1,3)
+
+merge_all <- merge_all %>%  RunHarmony(c("cp"))
 
 merge_all <- merge_all %>%  FindNeighbors(reduction = "harmony", dims = 1:30)  %>% RunUMAP(reduction = "harmony", dims = 1:30)
 merge_all <- FindClusters(merge_all, resolution = 0.4) %>% identity()
 DimPlot(merge_all, reduction = "umap", group.by = "seurat_clusters", pt.size = .1, split.by = c('cp'), label = TRUE)
 
+FindMarkers(merge_all, "11")

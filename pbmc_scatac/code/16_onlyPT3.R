@@ -16,8 +16,8 @@ metadata <- fread("../../../pearson_mtscatac_large_data_files/input/pearson_3don
 metadata <- data.frame(metadata)
 rownames(metadata) <- metadata[[1]]
 
-metadata <- metadata[grepl("-1", rownames(metadata)),]
-counts <- counts[,grepl("-1", colnames(counts))]
+metadata <- metadata[grepl("-3", rownames(metadata)),]
+counts <- counts[,grepl("-3", colnames(counts))]
 
 df_BCI <- fread("../data/deletion_heteroplasmy/del_PBMC_BCI.deletion_heteroplasmy.tsv") %>%
   dplyr::filter(reads_all>=10) %>% 
@@ -34,7 +34,7 @@ df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasm
   dplyr::filter(reads_all>=10) %>% 
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
-metadata_full <- merge(df_BCI, metadata, by = "barcode")
+metadata_full <- merge(df_PT3, metadata, by = "barcode")
 rownames(metadata_full) <- metadata_full$barcode
 counts <- counts[,rownames(metadata_full)]
 
@@ -91,8 +91,8 @@ DefaultAssay(pbmc) <- "ACTIVITY"
 FeaturePlot(object = pbmc, c( "CD4", "CD8A", "MS4A1",
                               "CD3E", "LEF1","TREM1",
                               "CCL5", "CCR7", 
-                              "IKZF2", "TOX", "ZNF462"),
-            max.cutoff = "q90")
+                              "TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
+            max.cutoff = "q95")
 
 FeaturePlot(object = pbmc, "reads_all") +
   scale_color_viridis()

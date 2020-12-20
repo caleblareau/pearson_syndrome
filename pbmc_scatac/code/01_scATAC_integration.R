@@ -132,7 +132,7 @@ pbmc2 <- FindClusters(object = pbmc2, verbose = FALSE, resolution = 0.5)
 DimPlot(object = pbmc2, label = FALSE, group.by = "seurat_clusters") 
 DimPlot(object = pbmc2, label = FALSE, group.by = "Patient") 
 
-df2 <- data.frame(pbmc_no_integration@reductions$umap@cell.embeddings); colnames(df2) <- c("UMAP1_bad", "UMAP2_bap")
+df2 <- data.frame(pbmc_no_integration@reductions$umap@cell.embeddings); colnames(df2) <- c("UMAP1_bad", "UMAP2_bad")
 pbmc2@meta.data$UMAP1_noIntegration <- df2[,1]
 pbmc2@meta.data$UMAP1_noIntegration <- df2[,2]
 
