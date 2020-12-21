@@ -23,19 +23,27 @@ process_me <- function(idx){
 full_mat <- do.call("cbind", lapply( 1:8, process_me))
 subset_mat <- full_mat[,soupercelldf[["barcode_aggr"]]]
 
-meta_df <- data.frame(
+meta_df_basic  <- data.frame(
   row.names = soupercelldf$barcode_aggr,
   soupercelldf
 )
+
+chr7 <- fread("../output/scRNA_MDS_annotations.tsv")
+mds_vec <- chr7$MDS; names(mds_vec) <- paste0(substr(chr7$barcode, 1, 17), chr7$lane)
+module <- readRDS("../output/scRNA_erythroid_modulescore.rds")
+module_vec <- module$erythroid_ms1; names(module_vec) <- module[["barcode_aggr"]]
+
 so <- CreateSeuratObject(
   subset_mat,
   project = "invitro_erythroid",
   assay = "RNA",
-  meta.data = meta_df
+  meta.data = meta_df_basic
 )
 so[["percent.mt"]] <- PercentageFeatureSet(so, pattern = "^MT-")
 VlnPlot(so, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
 so2 <- subset(so, subset = nFeature_RNA > 400 & nCount_RNA < 75000 & percent.mt < 25)
-so2@meta.data %>% group_by(Day, assignment) %>% summarize(count = n())
-so2@meta.data %>% group_by(Day, assignment) %>% summarize(count = mean(nFeature_RNA))
-saveRDS(so2, file = "../big_data/init_seurat_object.rds")
+dim(so2)
+so2@meta.data$MDS <- mds_vec[rownames(so2@meta.data)]
+so2@meta.data$module_score <- module_vec[rownames(so2@meta.data)]
+
+saveRDS(so2, file = "../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/Invitro_erythroid_scRNA_seurat_object.rds")

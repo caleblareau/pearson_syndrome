@@ -12,7 +12,7 @@ pathways <- list(ap1_genes, s)
 names(pathways) <- c("AP1targets", "senescence")
 
 # Import genes
-diff_df <- readRDS("../../../pearson_mtscatac_large_data_files/output/5March-PearsonRNAseq-diffGE-edgeR.rds")
+diff_df <- readRDS("../../../pearson_mtscatac_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 
 lapply(unique(diff_df$celltype), function(ct){
   print(ct)
