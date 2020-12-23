@@ -1,2 +1,2 @@
-# pearson_mtscatac_reproducibility
-Analyses of Pearson syndrome data
+# Pearson Syndrome analysis folder
+Analyses of Pearson syndrome genomics data
