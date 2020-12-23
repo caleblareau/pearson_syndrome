@@ -34,11 +34,11 @@ import_deletion <- function(library_n){
 
 del_df <- rbind(import_deletion(1), import_deletion(2), import_deletion(3), import_deletion(4), import_deletion(5))
 rownames(del_df) <- del_df$cell_id
-counts <- Read10X_h5(filename = "../../../pearson_mtscatac_large_data_files/input/bonemarrow_mnc_asap/Pearson_ASAP_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5(filename ="../../../pearson_mtscatac_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_filtered_peak_bc_matrix.h5" )
 
 # Slower but convenient for the row parsing
 metadata <- read.csv(
-  file = "../data/Pearson_ASAP_singlecell.csv.gz",
+  file = "../../../pearson_mtscatac_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_singlecell.csv.gz",
   header = TRUE,
   row.names = 1
 )
@@ -150,8 +150,10 @@ FeaturePlot(query, features = c("heteroplasmy"), reduction = "ref.umap") +
 FeaturePlot(query, features = c("predicted.celltype.l2.score"), reduction = "ref.umap") +
   scale_color_gradientn(colors=jdb_palette("solar_extra"))
 
+q7stats <- fread('../../pt3_chr7_del_scatac/output/Pearson-ASAP.chr7DelQC.tsv')
 
-query@meta.data %>% group_by(predicted.celltype.l2) %>%
-  summarize(mean(heteroplasmy), median(heteroplasmy), count = n()) %>% data.frame()
-
-            
+mdf <- merge(query@meta.data, 
+             q7stats, by.x = "row.names", by.y = "V4")
+mdf$MDS <- mdf$pct_in_del < 0.25
+ggplot(mdf, aes(x = predicted.celltype.l1 , y = heteroplasmy, color = MDS)) + 
+  geom_boxplot(width = 0.5, fill = NA)
