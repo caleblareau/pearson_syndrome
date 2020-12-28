@@ -108,9 +108,11 @@ process_chr7_del<- function(fragment_file,single_cell_file,output_file){
 #process_chr7_del("pbmcs/Pearson-BMMNC-PT3_v12_fragments.tsv.gz", "pbmcs/Pearson-BMMNC-PT3_v12_singlecell.csv", "../output/Pearson-BMMNC.chr7DelQC.tsv")
 #process_chr7_del("../pearson_asap/pearson_asap_fragments.tsv.gz", "../pearson_asap/singlecell.csv", "../output/Pearson-ASAP.chr7DelQC.tsv")
 #process_chr7_del("data_in/pbmc_3donor_aggr_fragments.tsv.gz", "data_in/pbmc_3donor_aggr_singlecell.csv", "../output/Pearson-PBMC.chr7DelQC.tsv")
-process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H9_v12-mtMask_fragments.tsv.gz",
-                 "../../pbmc_scatac/data/control_singlecell/PBMC_H9_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H9.chr7DelQC.tsv")
-process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H10_v12-mtMask_fragments.tsv.gz",
-                 "../../pbmc_scatac/data/control_singlecell/PBMC_H10_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H10.chr7DelQC.tsv")
+#process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H9_v12-mtMask_fragments.tsv.gz",
+#                "../../pbmc_scatac/data/control_singlecell/PBMC_H9_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H9.chr7DelQC.tsv")
+#process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H10_v12-mtMask_fragments.tsv.gz",
+#                 "../../pbmc_scatac/data/control_singlecell/PBMC_H10_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H10.chr7DelQC.tsv")
+process_chr7_del("CD34_H8_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_H8_v12-mtMask_singlecell.csv.gz", "../output/Healthy-CD34_H8.chr7DelQC.tsv")
+process_chr7_del("CD34_G10_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_G10_v12-mtMask_singlecell.csv.gz", "../output/Healthy-CD34_G10.chr7DelQC.tsv")
 
 
