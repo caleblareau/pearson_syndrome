@@ -112,9 +112,9 @@ df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasm
   dplyr::filter(deletion == "del10381-15407") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-3", cell_id)) %>%
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
-
 tdf <- merge(merge(azimuth_atac, df_PT3, by.x = "row.names", by.y = "barcode"), 
              fread('../../pt3_chr7_del_scatac/output/Pearson-PBMC.chr7DelQC.tsv'), by.x = "Row.names", by.y = "V4")
+
 tdf$MDS <- (tdf$X7del < 0.25)
 library(ggbeeswarm)
 tdf %>% filter(reads_all > 15) %>%
