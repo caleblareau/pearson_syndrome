@@ -19,7 +19,7 @@ getGenePositionsCL= function(gene_names,ensembl_version="dec2016.archive.ensembl
     ensembl = biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", value = "ensembl_gene_id", host=ensembl_version)
     gene_positions <- biomaRt::getBM(attributes=c('ensembl_gene_id','hgnc_symbol','chromosome_name','start_position','end_position'), values =gene_names, mart = ensembl)
   }
-
+  
   gene_positions=gene_positions[!duplicated(gene_positions[,2]),]
   gene_positions[which(gene_positions[,3]=="X"),3]=23
   gene_positions[which(gene_positions[,3]=="Y"),3]=24
@@ -31,7 +31,6 @@ getGenePositionsCL= function(gene_names,ensembl_version="dec2016.archive.ensembl
 # change to UCSC style since the data was mapped to hg19
 seqlevelsStyle(annotations) <- 'UCSC'
 genome(annotations) <- "hg19"
-gp <- CONICSmat::getGenePositions(unique(annotations$gene_name))
 
 process_chr7_del<- function(fragment_file,single_cell_file,output_file){
   # Slower but convenient for the row parsing
@@ -41,7 +40,7 @@ process_chr7_del<- function(fragment_file,single_cell_file,output_file){
     row.names = 1
   ) %>% dplyr::filter(cell_id != "None")
   
-
+  
   mat <- t(data.matrix(metadata[,c(1,2,3)]))
   rownames(mat) <- c("chr1-1-2", "chr2-3-4", "chr3-1-3")
   
@@ -88,8 +87,8 @@ process_chr7_del<- function(fragment_file,single_cell_file,output_file){
   
   pf %>%  dplyr::filter(V4 %in% consensus_barcodes & V1 == "chr7") %>%
     dplyr::mutate(del_region = V2 > 110000000) %>%
-    dplyr::group_by(V4, del_region) %>% dplyr::summarize(count = n()) %>%
-    dplyr::group_by(V4) %>% mutate(hits = n()) %>% dplyr::filter(hits == 2) -> count_df
+    dplyr::group_by(V4, del_region) %>% dplyr::summarize(count = dplyr::n()) %>%
+    dplyr::group_by(V4) %>% dplyr::mutate(hits = dplyr::n()) %>% dplyr::filter(hits == 2) -> count_df
   
   chr7_total_df <- count_df %>% dplyr::group_by(V4) %>% dplyr::summarize(all = sum(count))
   chr7_total_del_df <- count_df  %>% dplyr::filter(del_region) 
@@ -108,9 +107,7 @@ process_chr7_del<- function(fragment_file,single_cell_file,output_file){
 #process_chr7_del("pbmcs/Pearson-BMMNC-PT3_v12_fragments.tsv.gz", "pbmcs/Pearson-BMMNC-PT3_v12_singlecell.csv", "../output/Pearson-BMMNC.chr7DelQC.tsv")
 #process_chr7_del("../pearson_asap/pearson_asap_fragments.tsv.gz", "../pearson_asap/singlecell.csv", "../output/Pearson-ASAP.chr7DelQC.tsv")
 #process_chr7_del("data_in/pbmc_3donor_aggr_fragments.tsv.gz", "data_in/pbmc_3donor_aggr_singlecell.csv", "../output/Pearson-PBMC.chr7DelQC.tsv")
-process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H9_v12-mtMask_fragments.tsv.gz",
-                 "../../pbmc_scatac/data/control_singlecell/PBMC_H9_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H9.chr7DelQC.tsv")
-process_chr7_del("../../../pearson_mtscatac_large_data_files/input/pbmcs_scatac/mtscatac_paper/PBMC_H10_v12-mtMask_fragments.tsv.gz",
-                 "../../pbmc_scatac/data/control_singlecell/PBMC_H10_v12-mtMask_singlecell.csv", "../output/Healthy-PBMC_H10.chr7DelQC.tsv")
+#process_chr7_del("PBMC_H9_v12-mtMask_fragments.tsv.gz", "PBMC_H9_v12-mtMask_singlecell.csv", "Healthy-PBMC_H9.chr7DelQC.tsv")
+#process_chr7_del("PBMC_H10_v12-mtMask_fragments.tsv.gz", "PBMC_H10_v12-mtMask_singlecell.csv", "Healthy-PBMC_H10.chr7DelQC.tsv")
 
 

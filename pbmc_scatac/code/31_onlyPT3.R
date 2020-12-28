@@ -5,46 +5,44 @@ library(SummarizedExperiment)
 library(dplyr)
 library(GenomeInfoDb)
 library(BuenColors)
+library(EnsDb.Hsapiens.v75)
 library(ggbeeswarm)
-source("../functions/import_counts_mat_10x.R")
+library(viridis)
 set.seed(1)
 
 # Import ATAC data
-counts <- import_counts_mat_10x("../../../pearson_mtscatac_large_data_files/input/pearson_3donor_pbmcs/pbmc_3donor_aggr_filtered_peak_bc_matrix/")
-metadata <- fread("../../../pearson_mtscatac_large_data_files/input/pearson_3donor_pbmcs/pbmc_3donor_aggr_singlecell.csv") %>%
+metadata <- fread("../../../pearson_large_data_files/input/pbmcs_scatac/aggrs/P3H2_singlecell.csv") %>%
   filter(cell_id != "None")
 metadata <- data.frame(metadata)
 rownames(metadata) <- metadata[[1]]
+mat <- Read10X_h5("../../../pearson_large_data_files/input/pbmcs_scatac/aggrs/P3H2_filtered_peak_bc_matrix.h5")
+fragments_file <- "../../../pearson_large_data_files/input/pbmcs_scatac/aggrs/P3H2_fragments.tsv.gz"
 
+# Process meta data
 metadata <- metadata[grepl("-3", rownames(metadata)),]
-counts <- counts[,grepl("-3", colnames(counts))]
-
-df_BCI <- fread("../data/deletion_heteroplasmy/del_PBMC_BCI.deletion_heteroplasmy.tsv") %>%
-  dplyr::filter(reads_all>=10) %>% 
-  dplyr::filter(deletion == "del6073-13095") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-1", cell_id)) %>%
-  mutate(scale_heteroplasmy = scale(heteroplasmy))
-
-df_CCF <- fread("../data/deletion_heteroplasmy/del_PBMC_CCF.deletion_heteroplasmy.tsv") %>%
-  dplyr::filter(reads_all>=10) %>% 
-  dplyr::filter(deletion == "del8482-13447") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-2", cell_id)) %>%
-  mutate(scale_heteroplasmy = scale(heteroplasmy))
+mat <- mat[,grepl("-3", colnames(mat))]
+dim(mat)
+dim(metadata)
 
 df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasmy.tsv") %>%
   dplyr::filter(deletion == "del10381-15407") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-3", cell_id)) %>%
   dplyr::filter(reads_all>=10) %>% 
   mutate(scale_heteroplasmy = scale(heteroplasmy))
 
-metadata_full <- merge(df_PT3, metadata, by = "barcode")
+df_MDS <- fread("../../pt3_chr7_del_scatac/output/Pearson-PBMC.chr7DelQC.tsv")
+metadata_full <- merge(merge(df_PT3, metadata, by= "barcode"), df_MDS, by.x = "barcode", by.y  = "V4")
 rownames(metadata_full) <- metadata_full$barcode
-counts <- counts[,rownames(metadata_full)]
+
+# Create Seurat object
+mat <- mat[,rownames(metadata_full)]
 
 CA <- CreateChromatinAssay(
-  counts = counts,
+  counts = mat,
   sep = c(":", "-"),
   genome = 'hg19',
-  fragments = '../../../pearson_mtscatac_large_data_files/input/pearson_3donor_pbmcs/pbmc_3donor_aggr_fragments.tsv.gz',
-  min.cells = 0,
-  min.features = 0
+  fragments = fragments_file,
+  min.cells = 1,
+  min.features = 1
 )
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 seqlevelsStyle(annotations) <- 'UCSC'
@@ -59,7 +57,7 @@ pbmc <- CreateSeuratObject(
   min.cells = 1,
   meta.data = metadata_full
 )
-
+DefaultAssay(pbmc) <- "peaks"
 pbmc <- RunTFIDF(pbmc)
 pbmc <- FindTopFeatures(pbmc, min.cutoff = 'q25')
 pbmc <- RunSVD(
@@ -69,13 +67,15 @@ pbmc <- RunSVD(
   reduction.name = 'lsi'
 )
 
-pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:30)
-pbmc <- FindNeighbors(object = pbmc, reduction = 'lsi', dims = 2:30)
-
-DefaultAssay(pbmc) <- "peaks"
+pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:20)
+pbmc <- FindNeighbors(object = pbmc, reduction = 'lsi', dims = 2:20)
 pbmc <- FindClusters(object = pbmc, resolution = 0.8)
+
 DimPlot(object = pbmc, label = TRUE) 
 FeaturePlot(object = pbmc, "heteroplasmy") +
+  scale_color_viridis()
+
+FeaturePlot(object = pbmc, "pct_in_del") +
   scale_color_viridis()
 
 gene.activities <- GeneActivity(pbmc)
@@ -88,16 +88,15 @@ pbmc <- NormalizeData(
 )
 
 DefaultAssay(pbmc) <- "ACTIVITY"
-FeaturePlot(object = pbmc, c( "CD4", "CD8A", "MS4A1",
+FeaturePlot(object = pbmc, c( "CD4", "CD8A", "MS4A1", "CXCL14",
                               "CD3E", "LEF1","TREM1",
                               "CCL5", "CCR7", 
                               "TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
             max.cutoff = "q95")
 
-FeaturePlot(object = pbmc, "reads_all") +
-  scale_color_viridis()
+DefaultAssay(pbmc) <- "ACTIVITY"
+FindMarkers(pbmc, ident.1 = "15") %>% head(20)
 
-
-FindMarkers(pbmc, ident.1 = "5", ident.2 = "0") %>% head(20)
-FindMarkers(pbmc, ident.1 = "6") %>% head(50)
-
+FindMarkers(pbmc, ident.1 = "3", ident.2 = "4") %>% head(20)
+FindMarkers(pbmc, ident.1 = "3") %>% head(50)
+saveRDS(pbmc, file = "../../../pearson_large_data_files/output/pearson_pbmc_pt3.rds")
