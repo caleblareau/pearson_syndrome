@@ -110,8 +110,8 @@ process_chr7_del<- function(fragment_file,single_cell_file,output_file){
 #process_chr7_del("PBMC_H9_v12-mtMask_fragments.tsv.gz", "PBMC_H9_v12-mtMask_singlecell.csv", "Healthy-PBMC_H9.chr7DelQC.tsv")
 #process_chr7_del("PBMC_H10_v12-mtMask_fragments.tsv.gz", "PBMC_H10_v12-mtMask_singlecell.csv", "Healthy-PBMC_H10.chr7DelQC.tsv")
 
-process_chr7_del("CD34_H8_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_H8_v12-mtMask_singlecell.csv.gz", "../output/Healthy-CD34_H8.chr7DelQC.tsv")
-process_chr7_del("CD34_G10_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_G10_v12-mtMask_singlecell.csv.gz", "../output/Healthy-CD34_G10.chr7DelQC.tsv")
+process_chr7_del("CD34_H8_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_H8_v12-mtMask_singlecell.csv", "../output/Healthy-CD34_H8.chr7DelQC.tsv")
+process_chr7_del("CD34_G10_v12-mtMask_fragments.tsv.gz", "../../cd34_scatac/data/singlecell_sumstats/CD34_G10_v12-mtMask_singlecell.csv", "../output/Healthy-CD34_G10.chr7DelQC.tsv")
 
 
 
