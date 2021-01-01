@@ -2,8 +2,9 @@ library(BuenColors)
 library(dplyr)
 library(data.table)
 
-pbmc <- merge(fread("../output/Pearson-PBMC.chr7DelQC.tsv"), 
-              fread("../../pbmc_scatac/data/"),
+pbmc <- merge(fread("../output/Pearson-PBMC.chr7DelQC.tsv") %>%
+                mutate(V4 = gsub("-3", "-1", V4)), 
+              fread("../../pbmc_scatac/data/patient_singlecell/PBMC_PT3_v12-mtMask.singlecell.csv.gz"),
               by.x = "V4", by.y = "barcode")
 
 cd34 <- merge(fread("../output/Pearson-CD34-PT3.chr7DelQC.tsv"), 
@@ -22,6 +23,14 @@ healthyP <- merge(fread("../output/Healthy-PBMC_H10.chr7DelQC.tsv"),
                fread("../../pbmc_scatac/data/control_singlecell/PBMC_H10_v12-mtMask_singlecell.csv"),
                by.x = "V4", by.y = "barcode")
 
+pbmc <- pbmc %>% filter(cell_id != "None")
+cd34 <- cd34 %>% filter(cell_id != "None")
+bmmnc <- bmmnc %>% filter(cell_id != "None")
+
+healthyC <- healthyC %>% filter(cell_id != "None")
+healthyP <- healthyP %>% filter(cell_id != "None")
+
+
 p1 <- ggplot(cd34, aes(x = pct_in_del)) +
   geom_histogram(fill = "lightgrey", color = "black", bins = 41) +
   aes(y=stat(count)/sum(stat(count))*100) + 
@@ -39,7 +48,6 @@ p2 <- ggplot(bmmnc, aes(x = pct_in_del)) +
   scale_x_continuous(limits = c(10, 50)) +
   geom_vline(xintercept = 25, color = "firebrick") +
   labs(x = "", y = "")
-
 
 p3 <- ggplot(pbmc, aes(x = pct_in_del)) +
   geom_histogram(fill = "lightgrey", color = "black", bins = 41) +
@@ -68,13 +76,6 @@ p5 <- ggplot(healthyP, aes(x = pct_in_del)) +
   geom_vline(xintercept = 25, color = "firebrick") +
   labs(x = "", y = "")
 
-pbmc <- pbmc %>% filter(cell_id != "None")
-cd34 <- cd34 %>% filter(cell_id != "None")
-bmmnc <- bmmnc %>% filter(cell_id != "None")
-
-healthyC <- healthyC %>% filter(cell_id != "None")
-healthyP <- healthyP %>% filter(cell_id != "None")
-
 cowplot::ggsave2(cowplot::plot_grid(p1, p2, p3, ncol = 1), 
                  file = "../output/visualize_histogram_pearson_maintext.pdf", width = 1.8, height = 2)
 
@@ -87,3 +88,11 @@ sum(healthyP$pct_in_del < 25)/dim(healthyP)[1]
 sum(pbmc$pct_in_del < 25)/dim(pbmc)[1]
 sum(cd34$pct_in_del < 25)/dim(cd34)[1]
 sum(bmmnc$pct_in_del < 25)/dim(bmmnc)[1]
+
+
+pdf("../output/heatmap_smooth_scatter_pt_CD34.pdf", width = 2.5, height = 2.5)
+smoothScatter( x = cd34$pct_in_del, y = cd34$X7del, nbin = 328, 
+               colramp = colorRampPalette(c("white", jdb_palette("solar_rojos"))), 
+               nrpoints = 0, xlim = c(10,50),
+               ret.selection = FALSE, xlab="", ylab="")
+dev.off()
