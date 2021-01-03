@@ -8,7 +8,7 @@ library(matrixStats)
 "%ni%" <- Negate("%in%")
 
 # Pull data from previous steps
-df <- readRDS("../../../pearson_mtscatac_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+df <- readRDS("../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 df$Zstat <- qnorm((1E-250 + df$PValue)/2) * sign(df$logFC) * -1
 
 df %>% group_by(gene) %>%

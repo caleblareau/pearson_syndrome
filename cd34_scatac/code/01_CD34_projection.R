@@ -16,8 +16,8 @@ source("01a_LSI_project_helpers.R")
 nTop = 25000
 
 # Use Granja data as base
-SE <- readRDS("../../../pearson_mtscatac_large_data_files/output/granja_10X_CD34.rds")
-SE <- SE[,colData(SE)$Group != "CD34_Progenitors_Rep1"]
+SE <- readRDS("../../../pearson_large_data_files/input/CD34/granja_cd34/granja_10X_CD34.rds")
+SE <- SE[,colData(SE)$Group != "CD34_Progenitors_Rep2"]
 
 #Run LSI 1st Iteration
 lsi1 <- calcLSI(assay(SE), nComponents = 25, binarize = TRUE, nFeatures = NULL)
@@ -49,7 +49,7 @@ umap <- umap::umap(
 set.seed(10)
 
 # Multiply by -1 to make the pseudotime read left to right
-plot_df <- data.frame(umap$layout, colData(SE), Clusters = clust2, barcode = colData(SE)$Barcodes)
+plot_df <- data.frame(umap$layout , colData(SE), Clusters = clust2, barcode = colData(SE)$Barcodes)
 
 p0 <- ggplot(plot_df, aes(x= X1, y = X2, color = Clusters)) +
    geom_point(size = 0.5) +
@@ -62,8 +62,8 @@ umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
 projection_df_C1 <- data.frame(
   celltype = c(gsub("BM_", "", colData(sel)$Group), rep("none", dim(plot_df)[1])),
-  umap1 = c(umapProjection[,1], plot_df$X1),
-  umap2 = c(umapProjection[,2], plot_df$X2), 
+  umap1 = c(umapProjection[,1], plot_df$X1)* (-1),
+  umap2 = c(umapProjection[,2], plot_df$X2)* (-1), 
   barcode = c(colData(sel)$Barcodes, plot_df$barcode)
 )
 
@@ -73,15 +73,14 @@ p1 <- ggplot(projection_df_C1[dim(projection_df_C1)[1]:1,], aes(x= umap1, y = um
   pretty_plot() + L_border() + theme(legend.position = "bottom") +
   scale_color_manual(values = c(ejc_color_maps, "none" = "lightgrey"))
 
-
-sel <- readRDS("../../../pearson_mtscatac_large_data_files/output/Pearson-CD34-PT3_SummarizedExperiment.rds")
+sel <- readRDS("../../../pearson_large_data_files/output/Pearson-CD34-PT3_SummarizedExperiment.rds")
 lsiProjection <- projectLSI((assay(sel)[varPeaks,]), lsi2)
 umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
 projection_df_pearson_pt <- data.frame(
   celltype = c(rep("Pearson", dim(umapProjection)[1]), rep("base", dim(plot_df)[1])),
-  umap1 = c(umapProjection[,1], plot_df$X1),
-  umap2 = c(umapProjection[,2], plot_df$X2),
+  umap1 = c(umapProjection[,1], plot_df$X1)* (-1),
+  umap2 = c(umapProjection[,2], plot_df$X2)* (-1),
   barcode = c(colnames(sel), plot_df$barcode)
 )
 
@@ -92,14 +91,14 @@ p2 <- ggplot(projection_df_pearson_pt[dim(projection_df_pearson_pt)[1]:1,], aes(
   scale_color_manual(values = c("Pearson" = "firebrick", "base" = "lightgrey"))
 
 
-sel <- readRDS("../../../pearson_mtscatac_large_data_files/output/CD34_G10_SummarizedExperiment.rds")
+sel <- readRDS("../../../pearson_large_data_files/output/CD34_G10_SummarizedExperiment.rds")
 lsiProjection <- projectLSI((assay(sel)[varPeaks,]), lsi2)
 umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
 projection_df_control <- data.frame(
   celltype = c(rep("Healthy", dim(umapProjection)[1]), rep("base", dim(plot_df)[1])),
-  umap1 = c(umapProjection[,1], plot_df$X1),
-  umap2 = c(umapProjection[,2], plot_df$X2),
+  umap1 = c(umapProjection[,1], plot_df$X1)* (-1),
+  umap2 = c(umapProjection[,2], plot_df$X2)* (-1),
   barcode = c(colnames(sel), plot_df$barcode)
 )
 
@@ -114,5 +113,5 @@ cowplot:::ggsave2(cowplot::plot_grid(p0, p1, p2, p3, nrow = 2),
 
 save(projection_df_C1, projection_df_pearson_pt, projection_df_control, file = "../output/CD34_umap_embedding_granja_proj3.rda")
 
-projection_df_pearson_pt %>% filter(celltype == "Pearson" & umap1 < -7.5)
-projection_df_control %>% filter(celltype == "Healthy" & umap1 < -7.5)
+projection_df_pearson_pt %>% dplyr::filter(celltype == "Pearson" & umap1 < -7.5)
+projection_df_control %>% dplyr::filter(celltype == "Healthy" & umap1 < -7.5)

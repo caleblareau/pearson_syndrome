@@ -1,7 +1,7 @@
 
 # Import granja data
 if(FALSE){
-  granja_mat <- fread("../../../pearson_mtscatac_large_data_files/input/CD34/GSE129785_scATAC-Hematopoiesis-CD34.mtx.gz", skip = 2)
+  granja_mat <- fread("../../../pearson_large_data_files/input/CD34/GSE129785_scATAC-Hematopoiesis-CD34.mtx.gz", skip = 2)
   sm <- sparseMatrix(i = granja_mat[["V1"]], j = granja_mat[["V2"]], x = granja_mat[["V3"]])
   colData <- fread("../data/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.cell_barcodes.txt") %>% data.frame()
   peaks <- fread("../data/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.peaks.bed") %>%
@@ -16,7 +16,7 @@ if(FALSE){
   SE_CD34 <- SEall[,cd34boo]
   SE_C1 <- SEall[,c1boo]
   saveRDS(SE_C1, file = "../data/granja_cd34/granja_published_C1.rds")
-  saveRDS(SE_CD34, file = "../../../pearson_mtscatac_large_data_files/output/granja_10X_CD34.rds")
+  saveRDS(SE_CD34, file = "../../../pearson_large_data_files/output/granja_10X_CD34.rds")
   
 }
 

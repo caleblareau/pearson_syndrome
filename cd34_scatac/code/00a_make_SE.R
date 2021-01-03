@@ -61,7 +61,7 @@ importExperiment <- function(exp, peaks, frip_threshold){
   qcdf <- fread(paste0("../data/singlecell_sumstats/", exp,"_v12-mtMask_singlecell.csv.gz"), header = TRUE, sep = ",") %>% 
     data.frame() %>% filter(cell_id != "None")
   bc <- as.character(qcdf$barcode)
-  SE <- getCountsFromFrags(paste0("../../../pearson_mtscatac_large_data_files/input/CD34/", exp, "_v12-mtMask_fragments.tsv.gz"), peaks, bc)
+  SE <- getCountsFromFrags(paste0("../../../pearson_large_data_files/input/CD34/", exp, "_v12-mtMask_fragments.tsv.gz"), peaks, bc)
   
   df <- data.frame(colData(SE))
  
@@ -74,7 +74,7 @@ importExperiment <- function(exp, peaks, frip_threshold){
   df$keep <- log10(df$depth) >= 3 & df$FRIP >= frip_threshold & df$mtDNAcoverage >= 20
   
   SE2 <- SE[, df$keep]
-  saveRDS(SE2, file = paste0("../../../pearson_mtscatac_large_data_files/output/", exp, "_SummarizedExperiment.rds"))
+  saveRDS(SE2, file = paste0("../../../pearson_large_data_files/output/", exp, "_SummarizedExperiment.rds"))
   write.table(df, file = paste0("../output/barcode_qc/", exp, ".barcode_qc.tsv"), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   print(dim(SE2))
 }

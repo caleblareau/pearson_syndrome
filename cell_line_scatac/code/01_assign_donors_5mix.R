@@ -24,21 +24,17 @@ computeAFMutMatrix <- function(SE_go){
 }
 
 # Import AFs
-SE <- readRDS("Pearson-Mix-5_v12-mtMask_mgatk/final/Pearson-Mix-5_v12-mtMask_mgatk.rds")
-filt <- colData(SE)$depth >= 15 & colData(SE)$depth < 100
+SE <- readRDS("../../../pearson_large_data_files/input/cellline_mix/Pearson-Mix-5_v12-mtMask_mgatk.rds")
+filt <- colData(SE)$depth >= 20 & colData(SE)$depth < 100
 SE2 <- SE[,filt]
 af <- computeAFMutMatrix( SE2 )
-sum(af > 1)
 
 x <- (Matrix::rowSums(af > 0.99) > 100) & (Matrix::rowSums(af < 0.005) > 100)
 sum(x)
 xx <- x & rownames(af) %ni% c("3107N>C", "3107N>A", "567A>C", "3107N>T")
 afp <- af[xx,]
 
-# Try something high dimensional 
-
-
-
+# Assign based on homoplasmic snps
 dm <- t(data.matrix(afp))
 classify <- case_when(
   dm[,"709G>A"] > 0.9 & dm[,"11251A>G"] > 0.9 ~ "aPD1",
@@ -56,14 +52,7 @@ assign_df <- data.frame(
   mean_cov = colData(SE2)$depth
 ) 
 
-dm <- fread("../demuxlet/mix5/scSplit_result.csv")
-merged_df <- merge(assign_df, dm, by.x = "barcode", by.y = "Barcode")
-table(merged_df$fp_classify, merged_df$Cluster)
-
-dm_vec <- c("aPD1", "aPD2", "aPD3", "C1", "C2", "unassigned")
-names(dm_vec) <- c("SNG-0", "SNG-2", "SNG-1", "SNG-3", "SNG-5", "DBL-4")
-merged_df$classify <- dm_vec[as.character(merged_df$Cluster)]
-assign_df <- merged_df%>% arrange(fp_classify)
+assign_df <- assign_df%>% arrange(fp_classify) %>% dplyr::filter(fp_classify != "unassigned")
 
 assign_vec <- c("aPD1" = "#2780FF", "aPD2" = "#960096", "aPD3" = "#000090",
                 "C1" = "#333333", "C2" = "#999999", "unassigned" = "firebrick")
@@ -71,7 +60,7 @@ assign_vec <- c("aPD1" = "#2780FF", "aPD2" = "#960096", "aPD3" = "#000090",
 ha_col2 <- HeatmapAnnotation(df = data.frame(Assignment = assign_df$fp_classify),
                              col = list(Assignment = assign_vec))
 ss <- c("4216T>C","16270C>T", "4646T>C",  "8411A>C","3010G>A")
-pdf(paste0("output/Pearson_Mix_Homoplasmic5-all.pdf"), width=5, height=1.2)
+pdf(paste0("../output/Pearson_Mix_Homoplasmic5paper.pdf"), width=5, height=1.2)
 hm <- Heatmap(data.matrix(afp[vv,as.character(assign_df$barcode)]), 
               col=as.character(jdb_palette("solar_rojos",type="continuous")),
               show_row_names = TRUE, 
@@ -83,7 +72,7 @@ hm <- Heatmap(data.matrix(afp[vv,as.character(assign_df$barcode)]),
 hm
 dev.off()
 
-png(paste0("output/Pearson_Mix_Homoplasmic5-all.png"), width=20, height=4.8, res = 1000, units =  "in")
+png(paste0("../output/Pearson_Mix_Homoplasmic5paper.png"), width=20, height=4.8, res = 1000, units =  "in")
 hm <- Heatmap(data.matrix(afp[vv,as.character(assign_df$barcode)]), 
               col=as.character(jdb_palette("solar_rojos",type="continuous")),
               show_row_names = TRUE, 
