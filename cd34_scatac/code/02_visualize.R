@@ -79,7 +79,7 @@ pMDS <- ggplot(projection_df_pearson_pt_merge[dim(projection_df_pearson_pt_merge
   geom_point_rast(size = 1, raster.dpi = 500) +
   labs(x = "UMAP1", y= "UMAP2", color = "Donor") +
   pretty_plot(fontsize = 7) + L_border() + 
-  scale_color_manual(values = c("black", "lightgrey", "purple3")) +
+  scale_color_manual(values = c("black", "lightgrey", "dodgerblue2")) +
   theme(legend.position = "none")
 
 pHet <- ggplot(projection_df_pearson_pt_merge[dim(projection_df_pearson_pt_merge)[1]:1,], aes(x= umap1, y = umap2, color = heteroplasmy)) +

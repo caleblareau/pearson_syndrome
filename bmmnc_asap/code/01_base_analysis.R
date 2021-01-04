@@ -18,14 +18,14 @@ import_deletion <- function(library_n){
 
 del_df <- rbind(import_deletion(1), import_deletion(2), import_deletion(3), import_deletion(4), import_deletion(5))
 rownames(del_df) <- del_df$cell_id
-counts <- Read10X_h5(filename = "../../../pearson_mtscatac_large_data_files/input/bonemarrow_mnc_asap/Pearson_ASAP_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_filtered_peak_bc_matrix.h5")
 
 # Slower but convenient for the row parsing
 metadata <- read.csv(
-  file = "../data/Pearson_ASAP_singlecell.csv.gz",
+  file = "../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_singlecell.csv.gz",
   header = TRUE,
   row.names = 1
-)
+)[,c(1:10,12)]
 
 protein_mat <- readRDS("../data/Pearson_ASAP_allProteinCounts.rds")
 
@@ -71,7 +71,7 @@ CA <- CreateChromatinAssay(
   counts = counts_filt,
   sep = c(":", "-"),
   genome = 'hg19',
-  fragments = '../../../pearson_mtscatac_large_data_files/input/bonemarrow_mnc_asap/pearson_asap_fragments.tsv.gz',
+  fragments = '../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_fragments.tsv.gz',
   min.cells = 0,
   min.features = 0
 )
@@ -80,8 +80,13 @@ CA <- CreateChromatinAssay(
 # add the gene information to the object
 Annotation(CA) <- annotations
 
-full_meta_data_del7 <- merge(full_meta_data, data.table::fread("../../pt3_chr7_del/output/Pearson-ASAP.chr7DelQC.tsv"), by.x = "row.names", by.y = "V4")
+
+# Define the monosomy 7 annotaiton
+full_meta_data_del7 <- merge(full_meta_data, data.table::fread("../../pt3_chr7_del_scatac/output/Pearson-ASAP.chr7DelQC.tsv"), by.x = "row.names", by.y = "V4")
 rownames(full_meta_data_del7) <- full_meta_data_del7$Row.names
+ggplot(full_meta_data_del7, aes(x = pct_in_del, y = X7del)) + geom_point(size = 0.1)
+full_meta_data_del7$chr7 <- ifelse(full_meta_data_del7$X7del < 0.3, "Monosomy7", "Wildtype")
+
 pearson_asap <- CreateSeuratObject(
   counts = CA,
   assay = "peaks",
@@ -100,23 +105,24 @@ pearson_asap <- RunSVD(pearson_asap)
 DepthCor(pearson_asap)
 
 # Make embedding and clusters
-pearson_asap <- RunUMAP(object = pearson_asap, reduction = 'lsi', dims = 2:30)
-pearson_asap <- FindNeighbors(object = pearson_asap, reduction = 'lsi', dims = 2:30)
-pearson_asap <- FindClusters(object = pearson_asap, verbose = FALSE, algorithm = 3)
-p1 <- DimPlot(object = pearson_asap, label = TRUE) + NoLegend()
-p1
+DefaultAssay(pearson_asap) <- "peaks"
+pearson_asap <- RunUMAP(object = pearson_asap, reduction = 'lsi', dims = 2:50)
+pearson_asap <- FindNeighbors(object = pearson_asap, reduction = 'lsi', dims = 2:50)
+pearson_asap <- FindClusters(object = pearson_asap, verbose = FALSE,  resolution = 0.6)
+DimPlot(object = pearson_asap, label = TRUE) + NoLegend()
+
 
 # Look at heteroplasmy
-p2 <- FeaturePlot(object = pearson_asap, "heteroplasmy") +
+FeaturePlot(object = pearson_asap, "heteroplasmy") +
   scale_color_viridis()
-p2 
 
-p1 + p2
+# Annotate with MDS stuff
+DimPlot(object = pearson_asap, group.by =  "chr7") 
 
 # Viz the ASAP tags
 DefaultAssay(pearson_asap) <- "ADT"
 FeaturePlot(object = pearson_asap, c("CD71", "CD3-1", "CD19", "CD14", "CD8a",
-                                     "CD35", "CD4-1", "CD21"),
+                                     "CD35", "CD4-1", "CD21", "CD56(NCAM)Recombinant"),
             max.cutoff = "q90", cols =jdb_palette("brewer_spectra")) 
 FindMarkers(pearson_asap, ident.1 = "0", ident.2 = "10") %>% head(20)
 FindMarkers(pearson_asap, ident.1 = "2", ident.2 = "8")%>% head(20)
@@ -125,6 +131,7 @@ FeaturePlot(object = pearson_asap, c("CD25", "CD31"),
             max.cutoff = "q90", cols =jdb_palette("brewer_spectra")) 
 
 # add the gene activity matrix to the Seurat object as a new assay and normalize it
+DefaultAssay(pearson_asap) <- "peaks"
 gene.activities <- GeneActivity(pearson_asap)
 pearson_asap[['ACTIVITY']] <- CreateAssayObject(counts = gene.activities)
 pearson_asap <- NormalizeData(
@@ -138,11 +145,7 @@ DefaultAssay(pearson_asap) <- "ACTIVITY"
 FeaturePlot(object = pearson_asap, c("TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
             max.cutoff = "q95")
 
-# Annotate with MDS stuff
-FeaturePlot(object = pearson_asap, "pct_in_del", max.cutoff = "q95", min.cutoff = "q05") +
-  scale_color_viridis()
-
-saveRDS(pearson_asap, file = "../../../pearson_mtscatac_large_data_files/output/asap/pearson_asap_master_object.rds")
+saveRDS(pearson_asap, file = "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
 
 
 

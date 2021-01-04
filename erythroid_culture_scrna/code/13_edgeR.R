@@ -45,5 +45,6 @@ run_edgeRQLFDetRate_CL_ery <- function(count, condt) {
   df
   
 }
+
 counts <- (so@assays$RNA@counts)[!grepl("^RP|^MT", rownames(so@assays$RNA@counts)),]
 ery_df <- run_edgeRQLFDetRate_CL_ery(counts, so@meta.data$assignment)
