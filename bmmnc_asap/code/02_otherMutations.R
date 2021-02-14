@@ -1,5 +1,7 @@
 library(SummarizedExperiment)
-
+library(dplyr)
+library(BuenColors)
+library(viridis)
 if(FALSE){
   source("../../global_functions/variant_calling.R")
   
@@ -35,7 +37,7 @@ var_meta_df_raw <- data.frame(
 )
 
 # Collect more info about variants
-lapply(1:dim(var_meta_df)[1], function(i){
+lapply(1:dim(var_meta_df_raw)[1], function(i){
   var_df <- data.frame(
     cluster = mdf$cluster,
     variant = mdf[,i+1]
@@ -57,16 +59,17 @@ plot_mutation <- function(variant){
   sub_df <- data.frame(
     UMAP1 = mdf$UMAP_1,
     UMAP2 = mdf$UMAP_2,
-    mutation = mdf[,variant]
+    mutation = mdf[,variant] * 100,
+    chr7 = mdf$chr7
   )
   pm <- ggplot(sub_df %>% arrange((mutation)),
-               aes(x =  UMAP1, y = UMAP2, color = mutation > 0.1)) + geom_point()+ 
-    pretty_plot() + L_border() +
-    scale_color_manual(values = c("lightgrey", "firebrick")) +
-    theme(legend.position = "none") + ggtitle(variant)
+               aes(x =  UMAP1, y = UMAP2, color = mutation)) + geom_point()+ 
+    pretty_plot() + L_border() + facet_wrap(~chr7)+
+    scale_color_viridis() + 
+    theme(legend.position = "bottom") + ggtitle(variant)
   
   cowplot::ggsave2(pm, file = paste0("../plots/all_muts/", variant, ".png"), 
-                   width = 4, height = 4)
+                   width = 7, height = 4.5)
   variant
 }
 lapply(1:dim(var_meta_df)[1], function(i){
