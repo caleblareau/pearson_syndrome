@@ -1,0 +1,94 @@
+SRR	Phenotype	Sex	Region	Donor_ID
+SRR7700725	Bipolar disorder (BD)	female	Anterior cingulate cortex (ACC)	SBB_01
+SRR7700726	Bipolar disorder (BD)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_01
+SRR7700727	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_02
+SRR7700728	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_02
+SRR7700729	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_03
+SRR7700730	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_03
+SRR7700731	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_04
+SRR7700732	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_04
+SRR7700733	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_05
+SRR7700734	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_05
+SRR7700735	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_06
+SRR7700736	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_06
+SRR7700737	Major depressive disorder (MDD)	female	Anterior cingulate cortex (ACC)	SBB_07
+SRR7700738	Major depressive disorder (MDD)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_07
+SRR7700739	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_08
+SRR7700740	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_08
+SRR7700741	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_09
+SRR7700742	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_09
+SRR7700743	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_10
+SRR7700744	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_10
+SRR7700745	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_11
+SRR7700746	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_11
+SRR7700747	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_12
+SRR7700748	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_12
+SRR7700749	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_13
+SRR7700750	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_13
+SRR7700751	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_14
+SRR7700752	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_14
+SRR7700753	Schizophrenia (SZ)	female	Anterior cingulate cortex (ACC)	SBB_15
+SRR7700754	Schizophrenia (SZ)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_15
+SRR7700755	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_16
+SRR7700756	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_16
+SRR7700757	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_17
+SRR7700758	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_17
+SRR7700759	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_18
+SRR7700760	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_18
+SRR7700761	Bipolar disorder (BD)	female	Anterior cingulate cortex (ACC)	SBB_19
+SRR7700762	Bipolar disorder (BD)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_19
+SRR7700763	Major depressive disorder (MDD)	female	Anterior cingulate cortex (ACC)	SBB_20
+SRR7700764	Major depressive disorder (MDD)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_20
+SRR7700765	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_21
+SRR7700766	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_21
+SRR7700767	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_22
+SRR7700768	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_22
+SRR7700769	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_23
+SRR7700770	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_23
+SRR7700771	Schizophrenia (SZ)	male	Anterior cingulate cortex (ACC)	SBB_24
+SRR7700772	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_24
+SRR7700773	Schizophrenia (SZ)	male	Anterior cingulate cortex (ACC)	SBB_25
+SRR7700774	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_25
+SRR7700775	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_26
+SRR7700776	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_26
+SRR7700777	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	SBB_27
+SRR7700778	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_27
+SRR7700779	Schizophrenia (SZ)	male	Anterior cingulate cortex (ACC)	SBB_28
+SRR7700780	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_28
+SRR7700781	Bipolar disorder (BD)	male	Anterior cingulate cortex (ACC)	SBB_29
+SRR7700782	Bipolar disorder (BD)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_29
+SRR7700783	Alcohol, drug abuse, other (ADO)	male	Anterior cingulate cortex (ACC)	SBB_30
+SRR7700784	Alcohol, drug abuse, other (ADO)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_30
+SRR7700785	Schizophrenia (SZ)	male	Anterior cingulate cortex (ACC)	SBB_31
+SRR7700786	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	SBB_31
+SRR7700787	Schizophrenia (SZ)	female	Anterior cingulate cortex (ACC)	SBB_32
+SRR7700788	Schizophrenia (SZ)	female	Dorsolateral prefrontal cortex (DLPFC)	SBB_32
+SRR7700789	Major depressive disorder (MDD)	male	Anterior cingulate cortex (ACC)	UCI_01
+SRR7700790	Major depressive disorder (MDD)	male	Whole blood (BLOOD)	UCI_01
+SRR7700791	Major depressive disorder (MDD)	male	Caudate nucleus (CAUN)	UCI_01
+SRR7700792	Major depressive disorder (MDD)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_01
+SRR7700793	Major depressive disorder (MDD)	male	Hippocampus (HIPP)	UCI_01
+SRR7700794	Major depressive disorder (MDD)	male	Putamen (PUT)	UCI_01
+SRR7700795	Unaffected control (CTRL)	male	Anterior cingulate cortex (ACC)	UCI_02
+SRR7700796	Unaffected control (CTRL)	male	Whole blood (BLOOD)	UCI_02
+SRR7700797	Unaffected control (CTRL)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_02
+SRR7700798	Unaffected control (CTRL)	male	Hippocampus (HIPP)	UCI_02
+SRR7700799	Unaffected control (CTRL)	male	Putamen (PUT)	UCI_02
+SRR7700800	Unaffected control (CTRL)	male	Anterior cingulate cortex (ACC)	UCI_03
+SRR7700801	Unaffected control (CTRL)	male	Whole blood (BLOOD)	UCI_03
+SRR7700802	Unaffected control (CTRL)	male	Caudate nucleus (CAUN)	UCI_03
+SRR7700803	Unaffected control (CTRL)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_03
+SRR7700804	Unaffected control (CTRL)	male	Hippocampus (HIPP)	UCI_03
+SRR7700805	Unaffected control (CTRL)	male	Putamen (PUT)	UCI_03
+SRR7700806	Schizophrenia (SZ)	female	Whole blood (BLOOD)	UCI_04
+SRR7700807	Schizophrenia (SZ)	female	Dorsolateral prefrontal cortex (DLPFC)	UCI_04
+SRR7700808	Schizophrenia (SZ)	male	Whole blood (BLOOD)	UCI_05
+SRR7700809	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_05
+SRR7700810	Schizophrenia (SZ)	male	Whole blood (BLOOD)	UCI_06
+SRR7700811	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_06
+SRR7700812	Schizophrenia (SZ)	male	Whole blood (BLOOD)	UCI_07
+SRR7700813	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_07
+SRR7700814	Schizophrenia (SZ)	female	Whole blood (BLOOD)	UCI_08
+SRR7700815	Schizophrenia (SZ)	female	Dorsolateral prefrontal cortex (DLPFC)	UCI_08
+SRR7700816	Schizophrenia (SZ)	male	Whole blood (BLOOD)	UCI_09
+SRR7700817	Schizophrenia (SZ)	male	Dorsolateral prefrontal cortex (DLPFC)	UCI_09
