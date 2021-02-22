@@ -116,6 +116,7 @@ tdf <- merge(merge(azimuth_atac, df_PT3, by.x = "row.names", by.y = "barcode"),
              fread('../../pt3_chr7_del_scatac/output/Pearson-PBMC.chr7DelQC.tsv'), by.x = "Row.names", by.y = "V4")
 
 tdf$MDS <- (tdf$X7del < 0.25)
+
 library(ggbeeswarm)
 tdf %>% filter(reads_all > 15) %>%
   ggplot(aes(x = predicted.celltype.l1, y = heteroplasmy, color = MDS)) +
@@ -137,3 +138,5 @@ pp <- azimuth_atac %>% group_by(cca_annotation, predicted.celltype.l2) %>%
 ggplot(pp, aes(x =cca_annotation, y = predicted.celltype.l2, fill = prop , label = count)) + 
   geom_tile() + geom_text() + scale_fill_gradientn(colors = jdb_palette("solar_rojos")) + pretty_plot() + L_border() +
   labs(x = "CCA Annotation", y = "Azimuth projection annotation") + theme(legend.position = "bottom")
+
+saveRDS(pbmc, file = "../../../pearson_large_data_files/output/azimuth.rds")

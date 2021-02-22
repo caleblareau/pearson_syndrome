@@ -119,17 +119,39 @@ pbmc2 <- FindNeighbors(object = pbmc2, reduction = 'harmony', dims = 2:30)
 pbmc2 <-   FindClusters(object = pbmc2, verbose = FALSE, resolution = 0.5)
 pbmc2$cluster_pheno <- paste0(pbmc2$seurat_clusters, "_", pbmc2$Disease)
 
+corona = c("#1f77b4","#d62728","#2ca02c","#ff7f0e","#9467bd","#8c564b","#e377c2","#7f7f7f",
+           "#bcbd22","#17becf","#ad494a","#e7ba52","#8ca252","#756bb1","#636363","#aec7e8",
+           "#ff9896","#98df8a","#ffbb78","#c5b0d5","#c49c94","#f7b6d2","#c7c7c7","#dbdb8d",
+           "#9edae5","#e7969c","#e7cb94","#c7e9c0","#de9ed6","#d9d9d9")
 DimPlot(object = pbmc2, label = TRUE)
-DimPlot(object = pbmc2, group.by = "Patient" )
+
+col_vec <- c("#1f77b4","#756bb1", "#aec7e8",  "#2ca02c", "#7f7f7f", "#ff7f0e","#9467bd",
+             "#8ca252", "#ffbb78", "#c7c7c7", "#e7ba52", "#8c564b"); names(col_vec) <-  as.character(0:11)
+
+# Make general embedding plot for figure
+ppng <- DimPlot(pbmc2, label = FALSE) +
+  scale_color_manual(values = col_vec)+
+  theme_void() + theme(legend.position = 'none') 
+cowplot::ggsave2(ppng, file = "../plots/scATAC_plot_nice_colors.png", width = 5, height = 5, dpi = 500)
 
 pbmc2$hetero2 <- ifelse(is.na(pbmc2$heteroplasmy), 100, pbmc2$heteroplasmy)
 pbmc2$sh2 <- ifelse(is.na(pbmc2$scale_heteroplasmy), 100, pbmc2$scale_heteroplasmy)
 
-FeaturePlot(pbmc2,  features= c("sh2"), split.by = "Patient") & 
-  scale_color_gradientn(colors = jdb_palette("brewer_spectra"))
+phet_grid <- FeaturePlot(pbmc2,  features= c("hetero2"), split.by = "Patient") & 
+  scale_color_gradientn( colours = viridisLite::viridis(256), limits = c(0,100), oob = scales::squish) &
+  theme_void() & theme(legend.position = "none")
+cowplot::ggsave2(phet_grid, file = "../plots/scATAC_plot_heteroplasmy.png", width = 20, height = 5.1, dpi = 500)
 
-boo <- pbmc2@meta.data$Disease == "Pearson" & (pbmc2@meta.data$seurat_clusters %in% c(0,1,2,4,6,7,8,9,10))
-
+# Make violin plot
+pbmc2@meta.data %>% dplyr::filter(Patient != "Healthy") -> plot_het
+plot_het$plot_donor <- factor(plot_het$Patient, c("PT3", "CCF", "BCI"))
+p1 <- plot_het %>% ggplot(aes(x = plot_donor, y = heteroplasmy)) +
+  geom_violin(fill = NA) + coord_flip() +
+  labs (x = "Patient", y = "% Heteroplasmy") +
+  pretty_plot(fontsize = 8) + L_border()
+cowplot::ggsave2(p1, file = "../plots/violins_heteroplasmy_nocluster.pdf", width = 3.5, height = 1.8)
+plot_het %>% group_by(plot_donor) %>%
+  summarize(count =n(), mean(heteroplasmy), median(heteroplasmy))
 
 # extract gene annotations from EnsDb
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
@@ -151,117 +173,31 @@ pbmc2 <- NormalizeData(
 )
 
 # Pearson correlation to see factors most associated with activation / not
+set.seed(1)
+boo <- pbmc2@meta.data$Disease == "Pearson" & (pbmc2@meta.data$seurat_clusters %in% c(0,1,2,4,6,7,8,9,10))
 cormat <- cor(pbmc2@meta.data$scale_heteroplasmy[boo],t(data.matrix(pbmc2@assays$RNA@data[,boo])),
               use = "pairwise.complete")
+perm_cormat <- cor(sample(pbmc2@meta.data$scale_heteroplasmy[boo]), t(data.matrix(pbmc2@assays$RNA@data[,boo])),
+                   use = "pairwise.complete")
 
-# Filter to interesting genes
-interesting_features <- c('NCAM1', 'CD4', 'CD8A', 'MS4A1', 'CD3D', 'LEF1', 'NKG7', 'TREM1', 'LYZ', 'CD14', 'CCR5', 'CXCR6','FYCO1', 'KLF7')
-FeaturePlot(pbmc2, features = interesting_features)
+obs_df <- data.frame(
+  gene = colnames(cormat),
+  cor = cormat[1,]
+) %>% dplyr::filter(!is.na(cor)) %>% arrange(desc(cor)) %>% mutate(rank = 1:n(), what = "observed") 
+write.table(obs_df, file = "../output/heteroplasmy_Tcell_association_ranking.tsv", 
+            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 
-DefaultAssay(pbmc2) <- "RNA"
-FindMarkers(pbmc2, ident.1 = "6")
-FindMarkers(pbmc2, ident.1 = "4", ident.2 = "2")
+perm_df <- data.frame(
+  gene = colnames(perm_cormat),
+  cor = perm_cormat[1,]
+) %>% dplyr::filter(!is.na(cor)) %>% arrange(desc(cor)) %>% mutate(rank = 1:n(), what = "permuted") 
 
+p1 <- ggplot(obs_df, aes(x = rank, y = cor)) + 
+  geom_point(size = 0.2) + scale_color_manual(values = c("black", "firebrick"))  + 
+  geom_point(inherit.aes = FALSE, data = perm_df, aes(x = rank, y = cor), color = "lightgrey", size = 0.2) +
+  labs(x = "Rank sorted genes", y = "Correlation") + 
+  pretty_plot(fontsize = 8) + L_border() + 
+  theme(legend.position = "none") + theme_void()
+cowplot::ggsave2(p1, file = "../plots/Tcell_heteroplasmy_assoc.png", width = 3, height = 3, dpi = 500)
 
-if(FALSE){
-  # Do azimuth label transfer
-  reference <- SeuratDisk::LoadH5Seurat("../../../pearson_large_data_files/input/pbmc_multimodal.h5seurat")
-  
-  # Look at the typical seurat performance
-  rna <- CreateSeuratObject(
-    counts = reference@assays$SCT@counts,
-    meta.data = reference@meta.data
-  )
-  rna <- NormalizeData(rna)
-  rna <- FindVariableFeatures(rna, nfeatures = 3000)
-  rna <- ScaleData(rna)
-  rna <- RunPCA(rna, npcs = 30)
-  rm(reference)
-  
-  DefaultAssay(pbmc2) <- "RNA"
-  pbmc2 <- pbmc2 %>% FindVariableFeatures() %>% NormalizeData() %>% ScaleData()
-  
-  transfer.anchors <- FindTransferAnchors(reference = rna, query = pbmc2, features = VariableFeatures(object = rna), 
-                                          reference.assay = "RNA", query.assay = "RNA", reduction = "cca")
-  
-  celltype.predictions <- TransferData(anchorset = transfer.anchors, refdata = rna$celltype.l2, 
-                                       weight.reduction = pbmc2[["harmony"]], dims = 2:50)
-  
-  pbmc2$transfered_cluster <- celltype.predictions$predicted.id
-  
-  DimPlot(object = pbmc2, group.by = "transfered_cluster", label = TRUE )
-}
-
-#-------------------
-# Look at motifsFeaturePlot(pbmc2,  features= c("pct_reads_in_peaks"))
-
-DefaultAssay(pbmc2) <- 'peaks'
-
-# extract position frequency matrices for the motifs
-pwm <- getMatrixSet(
-  x = JASPAR2018,
-  opts = list(species = 9606, all_versions = FALSE)
-)
-motif.matrix <- CreateMotifMatrix(
-  features = pbmc2@assays$peaks@ranges,
-  pwm = pwm,
-  genome = 'hg19',
-  use.counts = FALSE
-)
-
-pbmc2 <- AddMotifs(
-  object = pbmc2,
-  genome = BSgenome.Hsapiens.UCSC.hg19,
-  pfm = pwm
-)
-pbmc2 <- RunChromVAR(
-  object = pbmc2,
-  genome = BSgenome.Hsapiens.UCSC.hg19
-)
-Idents(pbmc2) <- "cluster_pheno"
-DefaultAssay(pbmc2) <- 'RNA'
-FindMarkers(pbmc2, ident.1 = "0_Pearson", ident.2 = "0_Healthy")
-
-
-FeaturePlot(pbmc2, features = c("FOSB"),  split.by = "Patient") &
-  scale_color_gradientn(colors = jdb_palette("solar_extra"))
-
-sapply(ms, name) %>% sort()
-# create a Motif object and add it to the assay
-
-
-# Retain the actual motif matched positions, down to the base pair
-DefaultAssay(pbmc2) <- 'peaks'
-motif.positions <- matchMotifs(
-  pwms = pwm,
-  subject = granges(pbmc2),
-  out = 'positions',
-  genome = 'hg19'
-)
-
-# Create a new Mofif object to store the results
-motif <- CreateMotifObject(
-  data = motif.matrix,
-  positions = motif.positions,
-  pwm = pwm
-)
-
-# Store all of this back in the Seurat object
-pbmc2 <- SetAssayData(
-  object = pbmc2,
-  slot = 'motifs',
-  new.data = motif
-)
-
-
-pbmc2 <- Footprint(
-  object = pbmc2,
-  motif.name = c("MA0139.1"),
-  genome = BSgenome.Hsapiens.UCSC.hg19,
-  in.peaks = TRUE
-)
-pbmcT <- subset(pbmc2, seurat_clusters %in% c(0))
-
-PlotFootprint(pbmc2, features = c("MA0139.1"))
-
-
+saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/PBMC_scATAC_3P1H-15FEB2021.rds")

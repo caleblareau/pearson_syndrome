@@ -52,6 +52,44 @@ if(FALSE){
                    width = 2.4, height = 2.4)
 }
 
+lapply(rownames(pearson_asap@assays$ADT), function(i){
+  p1 <- FeaturePlot(object = pearson_asap, i, pt.size = 0.1,
+                    max.cutoff = "q90") + theme_void() + theme(legend.position = "none") +
+    scale_color_gradientn(colors = jdb_palette("solar_extra")) 
+  
+  iname <- gsub("/", "_", i)
+  cowplot::ggsave2(p1, file = paste0("../plots/viz_adts/adt_small_panels_supplement_q90_",iname,".png"), 
+                   width = 4, height = 4.3, dpi = 400)
+})
+
+
+plot_factor_qs <- function(i){
+  p1 <- FeaturePlot(object = pearson_asap, i, pt.size = 0.1,
+                   max.cutoff = "q90") + theme_void() + theme(legend.position = "none") +
+    scale_color_gradientn(colors = jdb_palette("solar_extra"))+ ggtitle("")
+  return(p1)
+}
+cowplot::ggsave2(
+  cowplot::plot_grid(
+    plot_factor_qs("CD71"),
+    plot_factor_qs("CD117(c-kit)"),
+    plot_factor_qs("CD33"),
+    plot_factor_qs("CD35"),
+    plot_factor_qs("CD4-1"),
+    plot_factor_qs("CD8a"), ncol = 3, scale = 0.8, byrow = FALSE
+  ), file = "../plots/adt_small_panels_main_q90.png", width = 2.25*4, height = 1.5*4, dpi = 300)
+
+cowplot::ggsave2(
+  cowplot::plot_grid(
+    plot_factor_qs("CD45-2"),
+    plot_factor_qs("CD19"),
+    plot_factor_qs("CD123"),
+    plot_factor_qs("CD16"),
+    plot_factor_qs("CD56(NCAM)Recombinant"),
+    plot_factor_qs("CD335"), ncol = 3, scale = 0.8, byrow = FALSE
+  ), file = "../plots/adt_small_panels_supplement_q90.png", width = 2.25*4, height = 1.5*4, dpi = 300)
+
+
 
 FeaturePlot(object = pearson_asap, c("CD38-2", "CD71", "CD172a", "CD34", "CD117(c-kit)", "CD59", "CLEC12A"),
             max.cutoff = "q90", cols =jdb_palette("brewer_spectra"))
@@ -80,8 +118,8 @@ p_base <- ggplot(base_plot_df, aes(x = UMAP_1, y = UMAP_2, color = other_anno)) 
   theme_void() + theme(legend.position = "none")
 cowplot::ggsave2(p_base, file = "../plots/base_umap_colors.png", width = 8, height = 8, dpi = 400)
 
-p_mds <- ggplot(base_plot_df, aes(x = UMAP_1, y = UMAP_2, color = chr7)) + 
-  geom_point(size = 0.3) + scale_color_manual(values = c("dodgerblue2", "black")) +
+p_mds <- ggplot(shuf(base_plot_df), aes(x = UMAP_1, y = UMAP_2, color = chr7)) + 
+  geom_point(size = 0.3) + scale_color_manual(values = c("red", "dodgerblue3")) +
   theme_void() + theme(legend.position = "none")
 cowplot::ggsave2(p_mds, file = "../plots/mds_embedding.png", width = 8, height = 8, dpi = 400)
 

@@ -141,10 +141,6 @@ pearson_asap <- NormalizeData(
   scale.factor = median(pearson_asap$nCount_ACTIVITY)
 )
 
-DefaultAssay(pearson_asap) <- "ACTIVITY"
-FeaturePlot(object = pearson_asap, c("TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
-            max.cutoff = "q95")
-
 saveRDS(pearson_asap, file = "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
 
 

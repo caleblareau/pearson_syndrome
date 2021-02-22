@@ -17,7 +17,7 @@ run_edgeRQLFDetRate_CL_ery <- function(count, condt) {
   dge <- DGEList(count, group = condt)
   dge <- calcNormFactors(dge)
   
-  # adjust for sequencing technology (H2 is 10x v3), total genes detected
+  # Adjust for total genes detected
   cdr <- scale(colMeans(count > 0))
   design <- model.matrix(~ cdr + condt) 
   dge <- estimateDisp(dge, design = design)
@@ -48,3 +48,8 @@ run_edgeRQLFDetRate_CL_ery <- function(count, condt) {
 
 counts <- (so@assays$RNA@counts)[!grepl("^RP|^MT", rownames(so@assays$RNA@counts)),]
 ery_df <- run_edgeRQLFDetRate_CL_ery(counts, so@meta.data$assignment)
+
+library(readxl)
+lotta <- read_excel("../data/Lotta_etal_MetabolismGWAS_NG2020.xlsx")
+ery_df[rownames(ery_df) %in% unique(lotta$`Biologically prioritized genes`),]
+

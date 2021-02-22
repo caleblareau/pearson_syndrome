@@ -21,15 +21,25 @@ if(FALSE){
   saveRDS(data.matrix(assays(se_called)[["allele_frequency"]][possible,]), file = "../output/interesting_AFs.rds")
 }
 
-# Overlap other point mutaitons with embedding
+# Overlap other point mutations with embedding
 af <- readRDS("../output/interesting_AFs.rds")
-pearson_asap <- readRDS("../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+pearson_asap <- readRDS( "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+
 
 af_df <- (data.frame(t(af) , barcode = colnames(af)))
 df <- data.frame(pearson_asap@reductions$umap@cell.embeddings, cluster = pearson_asap@meta.data$seurat_clusters, 
                  barcode = rownames(pearson_asap@meta.data),  heteroplasmy = pearson_asap@meta.data$heteroplasmy,
+                 X7del = pearson_asap@meta.data$X7del,pct_in_del = pearson_asap@meta.data$pct_in_del,
+                 reads_all = pearson_asap@meta.data$reads_all,
                  chr7 = pearson_asap@meta.data$chr7)
 mdf <- merge(af_df, df)
+
+# Be more stringent on filtering
+mdf <- mdf %>% dplyr::filter(X7del> 0.6 | X7del < 0.1)
+
+ggplot(mdf %>% arrange((X5557T.A)), aes(y = X7del, x = pct_in_del, color = X5557T.A)) +
+  geom_point(size = 1) + 
+  scale_color_viridis() 
 
 var_meta_df_raw <- data.frame(
   variant = rownames(af),
@@ -43,51 +53,48 @@ lapply(1:dim(var_meta_df_raw)[1], function(i){
     variant = mdf[,i+1]
   )
   tcells <- var_df$cluster %in% c(0,5,3,16,6,2)
+  rtes <- var_df$cluster %in% c(5,6)
   
-  res.kw <- kruskal.test(variant ~ cluster, data = var_df)
-  data.frame(kruskal_pvalue = (res.kw)[[3]], 
-             tcell_mean = mean(var_df$variant[tcells])*100,
-             nont_mean = mean(var_df$variant[!tcells])*100,
-             mds_mean = mean(var_df$variant[mdf$chr7 == "Monosomy7"])*100,
-             wt_mean = mean(var_df$variant[mdf$chr7 == "Wildtype"])*100)
+  data.frame(
+    tcell_mean = mean(var_df$variant[tcells])*100,
+    nont_mean = mean(var_df$variant[!tcells])*100,
+    rte_mean = mean(var_df$variant[ rtes])*100,
+    nonrte_mean = mean(var_df$variant[!rtes &tcells])*100,
+    
+    mds_mean = mean(var_df$variant[mdf$chr7 == "Monosomy7"])*100,
+    wt_mean = mean(var_df$variant[mdf$chr7 == "Wildtype"])*100, 
+    pct_mds = mean(var_df$variant[mdf$chr7 == "Monosomy7"] > 0.1) *100,
+    pct_wt = mean(var_df$variant[mdf$chr7 == "Wildtype"] > 0.1) *100
+  )
 }) %>% data.table::rbindlist() %>% data.frame() -> vars_df
 var_meta_df<- cbind(var_meta_df_raw,vars_df)
-var_meta_df$kruskal_pvalue_adj <- p.adjust(var_meta_df$kruskal_pvalue)
-var_meta_df %>% mutate(rat = mds_mean/wt_mean) %>% arrange((rat))
 
-plot_mutation <- function(variant){
-  sub_df <- data.frame(
-    UMAP1 = mdf$UMAP_1,
-    UMAP2 = mdf$UMAP_2,
-    mutation = mdf[,variant] * 100,
-    chr7 = mdf$chr7
-  )
-  pm <- ggplot(sub_df %>% arrange((mutation)),
-               aes(x =  UMAP1, y = UMAP2, color = mutation)) + geom_point()+ 
-    pretty_plot() + L_border() + facet_wrap(~chr7)+
-    scale_color_viridis() + 
-    theme(legend.position = "bottom") + ggtitle(variant)
-  
-  cowplot::ggsave2(pm, file = paste0("../plots/all_muts/", variant, ".png"), 
-                   width = 7, height = 4.5)
-  variant
-}
-lapply(1:dim(var_meta_df)[1], function(i){
-  colnames(mdf)[i+1] %>% plot_mutation() 
-})
-
-ggplot(var_meta_df, aes(x = log10(mds_mean/wt_mean), y = -log10(kruskal_pvalue_adj), label = variant)) + 
+ggplot(var_meta_df, aes(x = pct_mds, y = pct_wt, label = variant)) + 
   geom_text() +
-  pretty_plot() + L_border() +
-  geom_vline(xintercept = 0, linetype = 2, color = "dodgerblue3")
+  pretty_plot() + L_border()  +
+  scale_x_continuous(limits = c(0,3)) +
+  scale_y_continuous(limits = c(0,3))
 
-ggplot(mdf %>% arrange((X3086T.C)),
-       aes(x =  UMAP_1, y = UMAP_2, color = X3086T.C > 0.1)) + geom_point()
-ggplot(mdf %>% arrange((X7836T.C)),
-       aes(x =  UMAP_1, y = UMAP_2, color = X7836T.C > 0.1)) + geom_point()
-ggplot(mdf %>% arrange((X13970G.A)),
-       aes(x =  UMAP_1, y = UMAP_2, color = X13970G.A > 0.1)) + geom_point()
-ggplot(mdf %>% arrange((X5043G.A)),
-       aes(x =  UMAP_1, y = UMAP_2, color = X5043G.A > 0.1)) + geom_point()
-ggplot(mdf %>% arrange((X14476G.A)),
-       aes(x =  UMAP_1, y = UMAP_2, color = X14476G.A  > 0.1)) + geom_point()
+
+plot_mutation <- function(mutation, cutoff, colorplot){
+  mdf2 <- mdf[,c("UMAP_1", "UMAP_2", mutation, "chr7")]
+  colnames(mdf2) <- c("UMAP_1", "UMAP_2", "mutation", "chr7")
+  mdf2$colorme <- mdf2[[3]] > cutoff
+  p1 <- ggplot(mdf2 %>% arrange((colorme)),
+               aes(x =  UMAP_1, y = UMAP_2, color = colorme)) + geom_point(size = 1.5) +
+    facet_wrap(~chr7) + theme_void() + scale_color_manual(values = c("lightgrey", colorplot)) +
+    theme(legend.position = "none")
+  cowplot::ggsave2(p1, file = paste0("../plots/muts/",mutation,".png"), width = 8, height = 4, dpi = 300)
+}
+
+# MDS enriched mutations
+plot_mutation("X1719G.A", 0.15, "red")
+plot_mutation("X7836T.C", 0.15, "red")
+
+# Non-MDS enriched mutations
+plot_mutation("X14476G.A", 0.5, "dodgerblue3")
+plot_mutation("X12242A.G", 0.25, "dodgerblue3")
+
+# RTE
+plot_mutation("X13970G.A", 0.25, "purple4")
+plot_mutation("X5557T.A", 0.35, "purple4")
