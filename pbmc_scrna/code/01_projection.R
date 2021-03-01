@@ -14,8 +14,8 @@ import_project_scRNAseq <- function(dir_base, name, pheno){
   data.dir <- paste0("../data/", dir_base)
   raw <- Read10X(data.dir = data.dir)
   colnames(raw) <- paste0(substr(colnames(raw), 1, 16), "-1")
-  
-  # import scrublet results
+
+    # import scrublet results
   singlets <- fread(paste0("../data/scrublet_out/", dir_base, ".scrub.tsv")) %>%
     data.frame() %>% dplyr::filter(!called) %>% pull(barcode)
 
