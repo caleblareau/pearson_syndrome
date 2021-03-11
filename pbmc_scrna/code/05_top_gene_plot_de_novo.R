@@ -7,7 +7,7 @@ library(data.table)
 library(cowplot)
 options(future.globals.maxSize = 4000 * 1024^2)
 
-edgeR_celltypes <- sort(unique(readRDS("../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")$celltype))
+edgeR_celltypes <- sort(unique(readRDS("../output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")$celltype))
 libs <- c("pearson_bci", "pearson_ccf", "pearson_mds", "healthy_pbmc_8k_v2-remap", "healthy_pbmc_4k_v2-remap", "healthy_pbmc_5k_nextgem", "healthy_pbmc_5k")
 import_df <- function(dir_base, short_id){
   idf <- readRDS(paste0("../output/seurat_projected_meta_", dir_base, ".rds"))
@@ -65,21 +65,24 @@ lapply(donors, function(d){
                CXCL14 = cpm["CXCL14"], PLEKHD1 = cpm["PLEKHD1"],
                JUN = cpm["JUN"], FOS = cpm["FOS"],
                CD69 = cpm["CD69"],
-               SLC38A2 = cpm["SLC38A2"],
-               ATF4 = cpm["ATF4"],
+               RGS1 = cpm["RGS1"],
+               SLC2A3 = cpm["SLC2A3"],
+               ALDOA = cpm["ALDOA"],
                LINC01641 = cpm["LINC01641"], C12orf54 = cpm["C12orf54"])
   }) %>% rbindlist() 
 })%>% rbindlist() %>% data.frame() -> ddf
 
 
-p_x <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(NEAT1 + 1))) +
+p_a <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(SLC2A3 + 1))) +
   geom_tile() +
-  scale_fill_gradientn(colors = jdb_palette("solar_rojos"), limits = c(4,12), oob = scales::squish) +
+  scale_fill_gradientn(colors = jdb_palette("solar_rojos"), limits = c(2,10), oob = scales::squish) +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(limits = rev(levels(as.factor(ddf$celltype))), expand = c(0,0)) +
   labs(x = "", y = "") + 
   pretty_plot(fontsize = 8) + L_border() + theme(legend.position = "none") 
-p_x
+p_a
+cowplot::ggsave2(p_a, file = "../plots/GLUT3_expression.pdf", width = 1.7, height = 2.3)
+
 
 p_cd69 <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(CD69 + 1))) +
   geom_tile() +
@@ -90,7 +93,7 @@ p_cd69 <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(CD69 + 1))) +
   pretty_plot(fontsize = 8) + L_border() + theme(legend.position = "none") 
 p_cd69
 
-cowplot::ggsave2(p_gpr85, file = "../plots/CD69_expression.pdf", width = 1.7, height = 2.3)
+cowplot::ggsave2(p_cd69, file = "../plots/CD69_expression.pdf", width = 1.7, height = 2.3)
 
 
 p_gpr85 <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(GPR85 + 1))) +

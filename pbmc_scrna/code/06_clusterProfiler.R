@@ -4,7 +4,7 @@ library(data.table)
 library(org.Hs.eg.db)
 
 # Import differential gene expression
-diff_df <- readRDS("../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+diff_df <- readRDS("../output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 tl <- bitr(diff_df$gene, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db", drop = FALSE) 
 tl <- tl[!duplicated(tl),]; name_vec <- tl[[2]]; names(name_vec) <- tl[[1]]
 diff_df$gene_id <- name_vec[as.character(diff_df$gene)]
@@ -14,7 +14,7 @@ diff_df <- diff_df[complete.cases(diff_df),]
 lapply(unique(diff_df$celltype), function(ct_go){
   print(ct_go)
   ct <- diff_df %>% dplyr::filter(celltype == ct_go)
-  geneList <- ct[["logFC"]]*-1*log10(PValue); names(geneList) <- ct[["gene_id"]]; geneList <- sort(geneList, decreasing = TRUE)
+  geneList <- ct[["logFC"]]*-1*log10(ct$PValue); names(geneList) <- ct[["gene_id"]]; geneList <- sort(geneList, decreasing = TRUE)
 
   kk <-  gseMKEGG(geneList = geneList, # 
                    organism = 'hsa', pvalueCutoff = 1, minGSSize = 10)
@@ -22,7 +22,7 @@ lapply(unique(diff_df$celltype), function(ct_go){
   kk$celltype <- ct_go
   kk
 }) %>% rbindlist() %>% data.frame()  -> all_enrich
-
+all_enrich
 
 pathways_sig <- all_enrich %>% mutate(z = abs(qnorm(pvalue/2)) * sign(NES)) %>%
   group_by(Description) %>% summarize(SZ = sum(z)/sqrt(n())) %>%
