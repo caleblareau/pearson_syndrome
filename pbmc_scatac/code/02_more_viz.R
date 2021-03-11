@@ -5,17 +5,62 @@ library(chromVAR)
 library(JASPAR2018)
 library(motifmatchr)
 library(TFBSTools)
+library(dplyr)
+library(BuenColors)
 
 pbmc2 <- readRDS("../../../pearson_large_data_files/output/PBMC_scATAC_3P1H-15FEB2021.rds")
+DimPlot(pbmc2, label = TRUE)
 
 # Filter to interesting genes
 interesting_features <- c('NCAM1', 'CD4', 'CD8A', 'MS4A1', 'CD3D', 'LEF1', 'NKG7', 'TREM1',
-                          'LYZ', 'CD14', 'CCR5', 'CXCR6', "RORA", "EOMES")
-FeaturePlot(pbmc2, features = interesting_features, max.cutoff = "q95")
+                          'LYZ', 'CD14', 'CCR5', 'CXCR6', "EOMES", "FCGR3A", "CD27")
+lapply(interesting_features, function(ff){
+  cowplot::ggsave2(FeaturePlot(pbmc2, features = ff, max.cutoff = "q90", pt.size = 0.1) &
+    theme_void() + theme(legend.position = "none"), file = paste0("../plots/markers/", ff, ".png"), width = 5, height = 5, dpi = 500)
+})
 
-DefaultAssay(pbmc2) <- "RNA"
-FindMarkers(pbmc2, ident.1 = "6")
-FindMarkers(pbmc2, ident.1 = "4", ident.2 = "2")
+
+anno_label <- c(
+  "0" = "NaiveCD4",
+  "1" = "NaiveCD8",
+  "2" = "MemoryCD4",
+  "3" = "NaiveB", 
+  "4" = "NKcell", 
+  "5" = "CD14mono", 
+  "6" = "zEffectorMemoryCD8", 
+  "7" = "MemoryBcell", 
+  "8" = "CD16mono", 
+  "9" = "brightNKcell", 
+  "10" = "mDCs", 
+  "11" = "pDCs"
+)
+pbmc2$anno <- anno_label[as.character(pbmc2$seurat_clusters)]
+DimPlot(pbmc2, label = TRUE, group.by = "anno")
+
+pbmc2@meta.data %>% group_by(Patient, anno) %>%
+  summarize(n = n(), mean(heteroplasmy), median(heteroplasmy)) %>% data.frame()
+
+
+p1 <- ggplot(pbmc2@meta.data %>% dplyr::filter(anno %in% c("MemoryBcell", "NaiveB") & Patient != "Healthy"), aes(x = anno, y = heteroplasmy)) +
+  geom_violin() + 
+  facet_wrap(~Patient) + pretty_plot(fontsize = 8 ) +  labs(x = "", y = "Heteroplasmy")
+
+p2 <- ggplot(pbmc2@meta.data %>% dplyr::filter(anno %in% c("brightNKcell", "NKcell") & Patient != "Healthy"), aes(x = anno, y = heteroplasmy)) +
+  geom_violin() + 
+  facet_wrap(~Patient) + pretty_plot(fontsize = 8 ) +  labs(x = "", y = "Heteroplasmy")
+
+p3 <- ggplot(pbmc2@meta.data %>% dplyr::filter(anno %in% c("pDCs", "mDCs", "CD16mono", "CD14mono") & Patient != "Healthy"), aes(x = anno, y = heteroplasmy)) +
+  geom_violin() + 
+  facet_wrap(~Patient) + pretty_plot(fontsize = 8 ) +  labs(x = "", y = "Heteroplasmy")
+
+p4 <- ggplot(pbmc2@meta.data %>% dplyr::filter(anno %in% c("NaiveCD4", "NaiveCD8", "MemoryCD4", "zEffectorMemoryCD8") & Patient != "Healthy"), aes(x = anno, y = heteroplasmy)) +
+  geom_violin() + 
+  facet_wrap(~Patient) + pretty_plot(fontsize = 8 ) +  labs(x = "", y = "Heteroplasmy")
+
+cowplot::ggsave2(p1, file = "../plots/Bcell_heteroplasmy.pdf", width = 3, height = 2)
+cowplot::ggsave2(p2, file = "../plots/NKcell_heteroplasmy.pdf", width = 3, height = 2)
+cowplot::ggsave2(p3, file = "../plots/Myeloid_heteroplasmy.pdf", width = 4, height = 2)
+cowplot::ggsave2(p4, file = "../plots/Tcell_heteroplasmy.pdf", width = 4, height = 2)
 
 #-------------------
 
