@@ -12,7 +12,7 @@ pathways <- list(ap1_genes, s)
 names(pathways) <- c("AP1targets", "senescence")
 
 # Import genes
-diff_df <- readRDS("../../../pearson_mtscatac_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+diff_df <- readRDS("../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 
 lapply(unique(diff_df$celltype), function(ct){
   print(ct)
@@ -25,19 +25,34 @@ lapply(unique(diff_df$celltype), function(ct){
                                stats = sort(vec, decreasing = TRUE),
                                minSize=15,
                                maxSize=2000)
- 
+  
   fgsea_out[,c("pathway", "pval", "padj", "NES")] %>% arrange(pval) %>% mutate(celltype = ct)
 }) %>% rbindlist() %>% data.frame() -> enrich_out_all
 
-enrich_out_all %>%
+enrich_out_all %>%dplyr::filter(pathway == "senescence") %>%
   mutate(log10padj = -1 * log10(padj)) %>%
-  arrange(desc(log10padj)) -> plot_df
+  arrange(desc(log10padj)) -> pb_sens
 
-plot_bar <- ggplot(plot_df %>% dplyr::filter(pathway == "AP1targets"), aes(y = celltype, x = log10padj)) +
+ggplot(pb_sens, aes(y = celltype, x = log10padj)) +
   geom_bar(stat = "identity", fill = jdb_palette("brewer_spectra")[2], color = "black") +
   pretty_plot(fontsize = 7) + L_border() +
-  scale_y_discrete(limits = rev((unique(plot_df$celltype))), expand = c(0,0)) +
+  scale_y_discrete(limits = rev((unique(pb_sens$celltype))), expand = c(0,0)) +
   scale_x_continuous(expand = c(0,0)) + 
-  theme(legend.position = "bottom") + geom_vline(xintercept = -1*log10(0.05), linetype = 2)
+  theme(legend.position = "bottom") + 
+  geom_vline(xintercept = -1*log10(0.05), linetype = 2) -> plot_bar_senescence
+plot_bar_senescence
+enrich_out_all %>%dplyr::filter(pathway == "AP1targets") %>%
+  mutate(log10padj = -1 * log10(padj)) %>%
+  arrange(desc(log10padj)) -> pb_ap1 
 
-cowplot::ggsave2(plot_bar, file = "../plots/AP1_gsea.pdf", width = 2.5, height = 2)
+ggplot(pb_ap1, aes(y = celltype, x = log10padj)) +
+  geom_bar(stat = "identity", fill = jdb_palette("brewer_spectra")[2], color = "black") +
+  pretty_plot(fontsize = 7) + L_border() +
+  scale_y_discrete(limits = rev((unique(pb_ap1$celltype))), expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) + 
+  theme(legend.position = "bottom") + 
+  geom_vline(xintercept = -1*log10(0.05), linetype = 2) -> plot_bar_AP1targets
+
+
+cowplot::ggsave2(cowplot::plot_grid(plot_bar_AP1targets, plot_bar_senescence, nrow = 1),
+                 filename  = "../plots/sens_AP1_gsea.pdf", width = 5, height = 2)

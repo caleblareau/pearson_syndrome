@@ -3,9 +3,9 @@ library(Matrix)
 library(SummarizedExperiment)
 
 df2 <- data.frame(
-  pos = c(16311, 8448, 961, 8618, 921, 16124, 189, 15301),
-  Control = c("T", "T", "T", "C", "C", "C", "G", "A"),
-  Pearson = c("C", "C", "G", "T", "T", "T", "A", "G")
+  pos = c(16311, 8448, 961, 8618, 921, 16124, 189),
+  Control = c("T", "T", "T", "C", "C", "C", "G"),
+  Pearson = c("C", "C", "G", "T", "T", "T", "A")
 )
 
 # Function to get the per barcode counts per donor by alt letter
@@ -16,7 +16,7 @@ extractme <- function(donor, letter, SE){
 
 # Given a summarized experiment from mgatk, compute the essentials for ultimately determining contamination
 process_SE_counts <- function(lib){
-  SE <- readRDS(paste0("../../../pearson_mtscatac_large_data_files/input/invitro_ery_diff/mgatk_files/Pearson_Healthy_",lib,"_v12-mtMask_mgatk.rds"))
+  SE <- readRDS(paste0("../../../pearson_large_data_files/input/invitro_ery_scatac//mgatk_files/Pearson_Healthy_",lib,"_v12-mtMask_mgatk.rds"))
   df3 <- data.frame(
     barcode = colnames(SE),
     control = extractme("Control", "A", SE) +  extractme("Control", "C", SE) +  extractme("Control", "G", SE) +  extractme("Control", "T", SE),
@@ -29,6 +29,7 @@ process_SE_counts <- function(lib){
            ifelse( df3$control_perc > 98, "Control", 
                    ifelse(df3$pearson_perc > 98, "Pearson", 
                           "Collision")))
+  table(df3$assign)
   write.table(df3, file = paste0("../output/cell_assignments_per_channel/Pearson_", lib, "_assign.tsv"), 
               sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   df3

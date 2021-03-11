@@ -7,7 +7,7 @@ library(data.table)
 library(cowplot)
 library(SeuratDisk)
 options(future.globals.maxSize = 4000 * 1024^2)
-reference <- LoadH5Seurat("../../../pearson_mtscatac_large_data_files/input/pbmc_multimodal.h5seurat")
+reference <- LoadH5Seurat("../../../pearson_large_data_files/input/pbmc_multimodal.h5seurat")
 
 # Import
 import_project_scRNAseq <- function(dir_base, name, pheno){

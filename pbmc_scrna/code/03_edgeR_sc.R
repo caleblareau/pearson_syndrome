@@ -37,7 +37,7 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   df$Healthy_cpm <- ps(condt == "H")
   
   # Pull donors
-  df$H1v2 <- ps(donor_id %in% c("H2a", "H2b"))
+  df$H1v2 <- ps(donor_id %in% c("H1a", "H1b"))
   df$H2v3 <- ps(donor_id %in% c("H2a", "H2b"))
   df$pBCI <- ps(donor_id == "pBCI")
   df$pCCF <- ps(donor_id == "pCCF")
@@ -72,9 +72,12 @@ df$celltype <- gsub(" ", ".", df$predicted.celltype.l2)
 # Now import counts
 import_counts <- function(dir_base, short_id){
   data.dir <- paste0("../data/", dir_base)
+  gene_coords <- fread("../data/forinfercnv/infer_CNV_gene_annotations.tsv")
+  xy_genes <- gene_coords %>% filter(V2 %in% c("X", "Y")) %>% pull(V1)
   raw <- Read10X(data.dir = data.dir)
   colnames(raw) <- paste0(short_id, "_", colnames(raw))
-  raw
+  
+  raw[!(rownames(raw) %in% xy_genes),]
 }
 
 counts <- cbind(
@@ -87,7 +90,7 @@ counts <- cbind(
   import_counts("healthy_pbmc_5k", "H2b")
 )
 
-counts <- counts[!grepl("^RP|^MT", rownames(counts)),as.character(rownames(df))]
+counts <- counts[!grepl("^RP|^MT-", rownames(counts)),as.character(rownames(df))]
 dim(counts)
 dim(df)
 df$barcode <- rownames(df)
@@ -116,6 +119,6 @@ list_of_de_mats <- lapply(cts_go, function(ct){
 
 melted_list <- rbindlist(list_of_de_mats) %>% arrange(FDR)
 melted_list %>% arrange(desc(abs(logFC)))
-saveRDS(melted_list, file = "../../../pearson_mtscatac_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+saveRDS(melted_list, file = "../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 
 

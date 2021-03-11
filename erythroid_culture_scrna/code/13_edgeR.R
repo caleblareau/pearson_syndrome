@@ -46,10 +46,22 @@ run_edgeRQLFDetRate_CL_ery <- function(count, condt) {
   
 }
 
-counts <- (so@assays$RNA@counts)[!grepl("^RP|^MT", rownames(so@assays$RNA@counts)),]
-ery_df <- run_edgeRQLFDetRate_CL_ery(counts, so@meta.data$assignment)
+# Filter out xy genes
+gene_coords <- fread("../../pbmc_scrna/data/forinfercnv/infer_CNV_gene_annotations.tsv")
+xy_genes <- gene_coords %>% filter(V2 %in% c("X", "Y")) %>% pull(V1)
+counts <- (so@assays$RNA@counts)[!grepl("^RP|^MT-", rownames(so@assays$RNA@counts)),]
+counts <- counts[!(rownames(counts) %in% xy_genes),]
+meta_df <- so@meta.data
 
-library(readxl)
-lotta <- read_excel("../data/Lotta_etal_MetabolismGWAS_NG2020.xlsx")
-ery_df[rownames(ery_df) %in% unique(lotta$`Biologically prioritized genes`),]
+# Filer some more genes
+rs <- rowSums(counts)
+cpms <- round(rs/sum(rs) *1000000,1)
+counts <- counts[cpms > 0.1,]
+dim(counts)
+ery_df6 <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D6"],  meta_df$assignment[meta_df$Day == "D6"])
+ery_df12 <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D12"], meta_df$assignment[meta_df$Day == "D12"])
+
+save(ery_df6, ery_df12, file = "../output/Erythroid_Person_edgeR_D6D12-DGE.rda")
+
+
 

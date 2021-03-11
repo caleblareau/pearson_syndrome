@@ -1,10 +1,11 @@
 library(data.table)
 library(dplyr)
+library(BuenColors)
 
 process_one_library <- function(lib, day){
   cells <- fread(paste0("../output/cell_assignments_per_channel/Pearson_",lib,"_assign.tsv")) %>%
     dplyr::filter(assign == "Pearson")
-  dels <- fread(paste0("../data/del/del_Pearson_Healthy_",lib,".deletion_heteroplasmy.tsv")) %>%
+  dels <- fread(paste0("../data/dels/del_Pearson_Healthy_",lib,".deletion_heteroplasmy.tsv")) %>%
     dplyr::filter(version == "improved" & deletion == "del10381-15407")
   mdf <- merge(cells, dels, by.x = "barcode", by.y = "cell_id")
   mdf$library <- lib
