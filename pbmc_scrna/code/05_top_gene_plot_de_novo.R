@@ -73,15 +73,15 @@ lapply(donors, function(d){
 })%>% rbindlist() %>% data.frame() -> ddf
 
 
-p_a <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(SLC2A3 + 1))) +
+p_a <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(ALDOA + 1))) +
   geom_tile() +
-  scale_fill_gradientn(colors = jdb_palette("solar_rojos"), limits = c(2,10), oob = scales::squish) +
+  scale_fill_gradientn(colors = jdb_palette("solar_rojos"), limits = c(2,6), oob = scales::squish) +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(limits = rev(levels(as.factor(ddf$celltype))), expand = c(0,0)) +
   labs(x = "", y = "") + 
   pretty_plot(fontsize = 8) + L_border() + theme(legend.position = "none") 
 p_a
-cowplot::ggsave2(p_a, file = "../plots/GLUT3_expression.pdf", width = 1.7, height = 2.3)
+cowplot::ggsave2(p_a, file = "../plots/ALDOA_expression.pdf", width = 1.7, height = 2.3)
 
 
 p_cd69 <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(CD69 + 1))) +
