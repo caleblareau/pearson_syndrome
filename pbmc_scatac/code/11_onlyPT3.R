@@ -69,13 +69,15 @@ pbmc <- RunSVD(
 
 pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:20)
 pbmc <- FindNeighbors(object = pbmc, reduction = 'lsi', dims = 2:20)
-pbmc <- FindClusters(object = pbmc, resolution = 0.8)
+
+DefaultAssay(pbmc) <- "peaks"
+pbmc <- FindClusters(object = pbmc, resolution = 0.8 )
 
 DimPlot(object = pbmc, label = TRUE) 
 FeaturePlot(object = pbmc, "heteroplasmy") +
   scale_color_viridis()
 
-FeaturePlot(object = pbmc, "pct_in_del") +
+FeaturePlot(object = pbmc, "X7del") +
   scale_color_viridis()
 
 gene.activities <- GeneActivity(pbmc)
@@ -89,14 +91,42 @@ pbmc <- NormalizeData(
 
 DefaultAssay(pbmc) <- "ACTIVITY"
 FeaturePlot(object = pbmc, c( "CD4", "CD8A", "MS4A1", "CXCL14",
-                              "CD3E", "LEF1","TREM1",
-                              "CCL5", "CCR7", 
-                              "TOX", "ADAM23", "ZNF462", "IKZF2", "CR1", "CR2"),
+                              "CD3E", "LEF1","TREM1", "FCGR3A", 
+                              "CCL5", "CCR7", "CD3D", "EOMES", "NKG7", 
+                              "TNFRSF17"),
             max.cutoff = "q95")
 
 DefaultAssay(pbmc) <- "ACTIVITY"
-FindMarkers(pbmc, ident.1 = "15") %>% head(20)
+FindMarkers(pbmc, ident.1 = "14") %>% head(20)
 
-FindMarkers(pbmc, ident.1 = "3", ident.2 = "4") %>% head(20)
+vec <- c("0" = "CD4_Naive",
+         "1" = "CD8_Naive",
+         "2" =  "CD4_Naive",
+         "3" = "NKcell",
+         "4" = "NKcell",
+         "5" = "CD4_RTE",
+         "6" = "CD8_cytotoxic",
+         "7" = "NKcell",
+         "8" = "Bcell_naive",
+         "9" = "Monocytes_CD14",
+         "10" = "CD8_RTE",
+         "11" = "CD8_effectormemory",
+         "12" = "Bcell_memory",
+         "13" = "Monocytes_CD16",
+         "14" = "pDCs",
+         "15" = "Bcell_plasma")
+pbmc$cl_anno <- vec[as.character(pbmc$seurat_clusters)]
+FindMarkers(pbmc, ident.1 = "6", ident.2 = "11") %>% head(20)
 FindMarkers(pbmc, ident.1 = "3") %>% head(50)
+set.seed(7)
+p1 <- DimPlot(pbmc, group.by = "cl_anno") +
+  scale_color_manual(values = sample(jdb_palette("corona", 14))) +
+  theme_void()
+cowplot::ggsave2(p1, file = "../plots/PT3_PBMC_clusters.pdf", width = 5, height = 3.5)
+
+p2 <- FeaturePlot(object = pbmc, "heteroplasmy") +
+  scale_color_viridis() + theme_void() + 
+  theme(legend.position = "none")
+cowplot::ggsave2(p2, file = "../plots/PT3_PBMC_heteroplasmy.pdf", width = 3.5, height = 3.5)
+
 saveRDS(pbmc, file = "../../../pearson_large_data_files/output/pearson_pbmc_pt3.rds")

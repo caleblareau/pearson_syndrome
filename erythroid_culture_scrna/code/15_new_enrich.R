@@ -11,6 +11,7 @@ ery_df12$day <- "day12"; ery_df6$day <- "day6"
 organism = "org.Hs.eg.db"
 diff_df <- rbind(ery_df6, ery_df12)
 
+celltype_go <- "day12"
 lapply(unique(diff_df$day), function(celltype_go){
   print(celltype_go)
   ct_df <- diff_df %>% filter(day == celltype_go) 
