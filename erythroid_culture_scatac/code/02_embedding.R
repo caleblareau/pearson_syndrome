@@ -44,14 +44,14 @@ stopifnot(dim(metadata2)[1] == dim(assign_df)[1])
 
 #good sanity check
 ggplot(metadata2, aes(x = assign, y = heteroplasmy)) + geom_boxplot()
-pearson <- metadata2 %>% filter(assign == "Pearson")
+pearson <- metadata2 %>% dplyr::filter(assign == "Pearson")
 smoothScatter( x = pearson$pct_in_del, y = pearson$X7del, nbin = 328, 
                colramp = colorRampPalette(c("white", jdb_palette("solar_rojos"))), 
                nrpoints = 0, xlim = c(10,50),
                ret.selection = FALSE, xlab="", ylab="")
 
 # Filter for worthwhile cells
-metadata3 <- metadata2 %>% filter(assign %in% c("Pearson", "Control"))
+metadata3 <- metadata2 %>% dplyr::filter(assign %in% c("Pearson", "Control"))
 metadata3$MDS <- ifelse(metadata3$assign == "Control", "Control", ifelse(
   metadata3$X7del < 0.2, "del7", "WT"))
 
@@ -114,7 +114,8 @@ DimPlot(so_filt_hm, label = TRUE)
 
 DimPlot(object = so_filt_hm, group.by = "day") 
 DimPlot(object = so_filt_hm, group.by = "assign") 
-DimPlot(object = so_filt_hm, group.by = "MDS") 
+DimPlot(object = so_filt_hm, group.by = "MDS") +
+  scale_color_manual(values = c("grey", "red", "black"))
 
 # Import gene activity scores
 ga1 <- readRDS("../../../pearson_large_data_files/output/invitro_erythroid/D6_1_gene_activities.rds")
@@ -133,6 +134,6 @@ DefaultAssay(so_filt_hm) <- "ACTIVITY"
 so_filt_hm <- FindVariableFeatures(so_filt_hm)
 so_filt_hm <- NormalizeData(so_filt_hm)
 
-FeaturePlot(so_filt_hm, c("CXCL14", "ALAS2", "GATA1"), max.cutoff = "q90")
+FeaturePlot(so_filt_hm, c("CXCL14", "ALAS2", "GATA1", "LYZ"), max.cutoff = "q90")
 
-FindMarkers(so_filt_hm, "5") %>% head(10)
+FindMarkers(so_filt_hm, "11") %>% head(20)

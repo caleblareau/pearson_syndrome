@@ -130,3 +130,24 @@ p2 <- FeaturePlot(object = pbmc, "heteroplasmy") +
 cowplot::ggsave2(p2, file = "../plots/PT3_PBMC_heteroplasmy.pdf", width = 3.5, height = 3.5)
 
 saveRDS(pbmc, file = "../../../pearson_large_data_files/output/pearson_pbmc_pt3.rds")
+pbmc2 <- readRDS("../../../pearson_large_data_files/output/PBMC_scATAC_3P1H-15FEB2021.rds")
+old_umap <- data.frame(cell=rownames(pbmc2@meta.data), pbmc2@reductions$umap@cell.embeddings)
+new_clustering <- data.frame(
+  cell = gsub("-1", "-3", rownames(pbmc@meta.data)),
+  pbmc@meta.data
+)
+mdf <- merge(old_umap, new_clustering, by = "cell")
+set.seed(7)
+x <- ggplot(mdf, aes(x = UMAP_1, y = UMAP_2, color = cl_anno)) +
+  geom_point(size = 0.5) +
+  scale_color_manual(values = sample(jdb_palette("corona", 14))) +
+  theme_void() + theme(legend.position = "none") + ggtitle("hm")
+cowplot::ggsave2(x, file = "../plots/old_embedding_new_colors.pdf", width = 3.5, height = 3.5)
+
+ggplot(mdf, aes(x = cl_anno, y = heteroplasmy)) + geom_boxplot()
+
+pG <- ggplot(mdf %>% arrange(desc(X7del)), aes(x = UMAP_1, y = UMAP_2, color = X7del < 0.01)) +
+  geom_point(size = 0.5) +
+  scale_color_manual(values = c("lightgrey", "red")) +
+  theme_void() + theme(legend.position = "none") + ggtitle("hm")
+cowplot::ggsave2(pG, file = "../plots/MDS_viz_pbmcs.pdf", width = 3.5, height = 3.5)
