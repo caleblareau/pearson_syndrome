@@ -18,7 +18,7 @@ process_infer_CNV <- function(idx){
                                cluster_by_groups=FALSE, 
                                plot_steps=FALSE,
                                denoise=TRUE,
-                               HMM=FALSE
+                               HMM=TRUE
   )
   idx
 }

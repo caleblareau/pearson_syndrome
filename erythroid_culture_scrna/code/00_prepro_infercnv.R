@@ -11,14 +11,14 @@ ccvec <- as.character(1:8)
 process_inferCNV <- function(idx = 1){
   
   lane_pro <- as.character(idx)
-  soupercelldf_lane <- soupercelldf %>% filter(lane == lane_pro & (stat == "singlet"))
+  soupercelldf_lane <- soupercelldf %>% dplyr::filter(lane == lane_pro & (stat == "singlet"))
   cc <- ccvec[idx]
   dd <- ddvec[idx]
   dat <- Read10X_h5(paste0("../data/PearsonMixErythroid_Day",dd,"_Channel",cc,".h5"))
   dim(dat)
   dat <- dat[,(colSums(dat) <  75000) & (colSums(dat >= 1) >= 400) & (colnames(dat) %in% soupercelldf_lane$barcode)]
   dim(dat)
-  soupercelldf_lane2 <- soupercelldf_lane %>% filter(barcode %in% colnames(dat)) 
+  soupercelldf_lane2 <- soupercelldf_lane %>% dplyr::filter(barcode %in% colnames(dat)) 
   pos_df <- fread("../data/for_infer_cnv/infer_CNV_gene_annotations.tsv")
   
   dat2 <- dat[pos_df[[1]],soupercelldf_lane2$barcode]
@@ -40,7 +40,7 @@ process_inferCNV <- function(idx = 1){
   
   # Reorder chromosome names
   chrs_order <- paste0(c(as.character(1:22)))
-  pos_df2 <- pos_df %>% filter(V1 %in% rownames(dat) & V2 %in% chrs_order) 
+  pos_df2 <- pos_df %>% dplyr::filter(V1 %in% rownames(dat) & V2 %in% chrs_order) 
   pos_df2$V2 <- factor(pos_df2$V2, levels = chrs_order)
   
   pos_df3 <- pos_df2 %>% arrange(V2, V3)

@@ -2,7 +2,7 @@ library(Seurat)
 library(harmony)
 library(magrittr)
 
-so <- readRDS("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/Invitro_erythroid_scRNA_seurat_object.rds")
+so <- readRDS("../../../pearson_large_data_files/output/invitro_erythroid/Invitro_erythroid_scRNA_seurat_object.rds")
 so <- subset(so, module_score > 0.25)
 so <- NormalizeData(so)
 so <- FindVariableFeatures(so, selection.method = "vst", nfeatures = 2000)
@@ -56,3 +56,16 @@ de.markers <- FindMarkers(so, ident.1 = "Pearson", ident.2 = "Healthy",
                           group.by = "assignment" )
 
 de.markers[c("PSAT1", "CBS", "CTH", "PHGDH", "PSPH", "CTSA", "SCPEP1"),]
+
+# Now do cell cycle scoring
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+so <- CellCycleScoring(so, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+
+DimPlot(so, group.by = c( "Phase"),  shuffle = TRUE, split.by = "assignment") &
+  scale_color_manual(values = jdb_palette("corona"))
+
+
+so <- AddModuleScore(so, go_enrich_down@geneSets[["GO:0051301"]], name = "CellDivision")
+FeaturePlot(so, features = c("CellDivision1"), split.by = "assignment", max.cutoff = "q95")
+
