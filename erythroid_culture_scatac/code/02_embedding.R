@@ -2,6 +2,7 @@ library(Signac)
 library(dplyr)
 library(harmony)
 library(Seurat)
+library(BuenColors)
 
 # Import scATAC
 counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/invitro_ery_scatac/aggr/Pearson_Invitro_D6D12atac_filtered_peak_bc_matrix.h5")
@@ -43,17 +44,18 @@ stopifnot(sum(metadata2$cell_id == "None") == 0)
 stopifnot(dim(metadata2)[1] == dim(assign_df)[1])
 
 #good sanity check
-ggplot(metadata2, aes(x = assign, y = heteroplasmy)) + geom_boxplot()
-pearson <- metadata2 %>% dplyr::filter(assign == "Pearson")
-smoothScatter( x = pearson$pct_in_del, y = pearson$X7del, nbin = 328, 
+ggplot(metadata2 %>% dplyr::filter(assign == "Pearson"),
+       aes(x = day, y = heteroplasmy)) + geom_violin()
+pearson <- metadata2 %>% dplyr::filter(assign == "Pearson" & day == "D06")
+smoothScatter( x = pearson$heteroplasmy, y = pearson$X7del, nbin = 328, 
                colramp = colorRampPalette(c("white", jdb_palette("solar_rojos"))), 
-               nrpoints = 0, xlim = c(10,50),
-               ret.selection = FALSE, xlab="", ylab="")
+               nrpoints = 0, #xlim = c(10,50),
+               ret.selection = FALSE, xlab="% Heteroplasmy", ylab="CONICs mixture component")
 
 # Filter for worthwhile cells
 metadata3 <- metadata2 %>% dplyr::filter(assign %in% c("Pearson", "Control"))
 metadata3$MDS <- ifelse(metadata3$assign == "Control", "Control", ifelse(
-  metadata3$X7del < 0.2, "del7", "WT"))
+  metadata3$X7del < 0.15, "del7", "WT"))
 
 so <- CreateSeuratObject(
   counts = counts[,metadata3$barcode],
