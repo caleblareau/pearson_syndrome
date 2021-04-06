@@ -50,8 +50,8 @@ cowplot::ggsave2(pD, file = "../plots/GA_IKZF2.png", width = 4, height = 4, dpi 
 
 
 rte_markers <- c("AOAH", "ADA", "CACHD1", "DACH1", "FCGRT","ITGA4", "ITGA6", "TCF4", "TLR1", "LRRN3", "TOX", "CR2")            
-
-cd8ga[rownames(cd8ga) %in% rte_markers,]
+key <- c("TOX", "IKZF2", "ZNF462", "ADAM23")
+cd8ga[rownames(cd8ga) %in% key,]
 cd4ga[rownames(cd4ga) %in% rte_markers,]
 
 cd8ga$p_val_adj <- cd8ga$p_val_adj + 1e-190
