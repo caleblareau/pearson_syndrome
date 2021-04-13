@@ -134,6 +134,19 @@ ppng <- DimPlot(pbmc2, label = FALSE) +
   theme_void() + theme(legend.position = 'none') 
 cowplot::ggsave2(ppng, file = "../plots/scATAC_plot_nice_colors.png", width = 5, height = 5, dpi = 500)
 
+pbmc3 <- subset(pbmc2, Disease == "Healthy")
+ppng2 <- DimPlot(pbmc3, label = FALSE) +
+  scale_color_manual(values = col_vec)+
+  theme_void() + theme(legend.position = 'none') 
+cowplot::ggsave2(ppng2, file = "../plots/scATAC_plot_nice_colors_only_healthy.png", width = 5, height = 5, dpi = 500)
+
+pbmcP <- subset(pbmc2, Disease == "Pearson")
+ppngP <- DimPlot(pbmcP, label = FALSE) +
+  scale_color_manual(values = col_vec)+
+  theme_void() + theme(legend.position = 'none') 
+cowplot::ggsave2(ppngP, file = "../plots/scATAC_plot_nice_colors_only_pearson.png", width = 5, height = 5, dpi = 500)
+
+
 pbmc2$hetero2 <- ifelse(is.na(pbmc2$heteroplasmy), 100, pbmc2$heteroplasmy)
 pbmc2$sh2 <- ifelse(is.na(pbmc2$scale_heteroplasmy), 100, pbmc2$scale_heteroplasmy)
 

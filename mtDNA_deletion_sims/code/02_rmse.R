@@ -27,7 +27,7 @@ rmse_info <- merged %>%
   summarise(rmse_del_cond = rmse(heteroplasmy, true_heteroplasmy)) %>%
   mutate(rmse_scaled = scale(rmse_del_cond))
 rmse_info <- rmse_info[order(as.numeric(rmse_info$far)),]
-rmse_info %>% group_by(del) %>% arrange(rmse_del_cond) %>% top_n(1, wt = desc(rmse_del_cond))
+rmse_info %>% group_by(del) %>% arrange(rmse_del_cond) %>% slice_min(order_by = rmse_del_cond)
 
 p1 <- ggplot(rmse_info, aes(x = (as.numeric(far)), y =(as.numeric(near)), fill = rmse_del_cond)) +
   geom_tile() +
@@ -63,6 +63,7 @@ rmse_info <- merged %>%
   summarise(rmse_del_cond = rmse(heteroplasmy, true_heteroplasmy)) %>%
   mutate(rmse_scaled = scale(rmse_del_cond))
 rmse_info <- rmse_info[order(as.numeric(rmse_info$far)),]
+rmse_info %>% group_by(del) %>% arrange(rmse_del_cond) %>% slice_min(order_by = rmse_del_cond)
 
 p1 <- ggplot(rmse_info, aes(x = (as.numeric(far)), y =(as.numeric(near)), fill = rmse_del_cond)) +
   geom_tile() +
