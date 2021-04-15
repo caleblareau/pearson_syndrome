@@ -10,7 +10,7 @@ library(matrixStats)
 # Pull data from previous steps
 df <- readRDS("../output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
 df$Zstat <- qnorm((1E-250 + df$PValue)/2) * sign(df$logFC) * -1
-df %>% mutate(rat = (Pearson_cpm + 0.01) / (Healthy_cpm + 0.01)) %>% filter(rat > 100) %>% data.frame()
+df %>% mutate(rat = (Pearson_cpm + 1) / (Healthy_cpm + 1)) %>% dplyr::filter(rat > 100) %>% data.frame()
 
 df %>% group_by(gene) %>%
   summarize(SZ = sum(Zstat)/sqrt(n()), MP = mean(Pearson_cpm), MH = mean(Healthy_cpm)) %>%

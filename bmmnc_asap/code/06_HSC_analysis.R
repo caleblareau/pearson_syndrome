@@ -20,6 +20,11 @@ pearson_asap$U1 <- pearson_asap@reductions$umap@cell.embeddings[,1]
 pearson_asap$U2 <-  pearson_asap@reductions$umap@cell.embeddings[,2]
 pearson_asap_ss <- subset(pearson_asap, seurat_clusters %in% "4" & U2 > -3.5 & U1 < -4)
 
+FeaturePlot(pearson_asap, c("CD38-1"), sort = TRUE, pt.size = 0.2, max.cutoff = "q90")
+ 
+FeaturePlot(pearson_asap_ss, c("CD38-1", "CD38-2",  "CD34", "CD71"), max.cutoff = c(1.5,1.5, 1, 1.5), min.cutoff = 0, sort = TRUE, pt.size = 0.2, ncol = 4) &
+  scale_color_gradientn(colors = jdb_palette("solar_extra")) & theme_void() & theme(legend.position = "none") 
+
 # Threshold matches full data q90
 p1 <-FeaturePlot(pearson_asap_ss, c("CD117(c-kit)", "CD71",  "CD34"), max.cutoff = c(1.5,1.5, 1), min.cutoff = 0, sort = TRUE, pt.size = 0.2, ncol = 3) &
   scale_color_gradientn(colors = jdb_palette("solar_extra")) & theme_void() & theme(legend.position = "none") &

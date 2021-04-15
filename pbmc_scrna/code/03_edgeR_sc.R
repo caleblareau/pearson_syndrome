@@ -68,6 +68,9 @@ df <- rbind(
   import_df("healthy_pbmc_5k", "H2b")
 )
 df$celltype <- gsub(" ", ".", df$predicted.celltype.l2)
+ctdf <- df
+
+
 
 # Now import counts
 import_counts <- function(dir_base, short_id){
@@ -99,6 +102,18 @@ cts <- unique(sort(as.character(df$celltype)))
 boo_ct <- table((sort(as.character(df$celltype)))) >= 250 
 cts_go <- cts[boo_ct]
 length(cts_go)
+
+library(ggbeeswarm)
+p1 <- ctdf %>% group_by(celltype, name) %>% summarize(count = n())  %>% arrange((celltype)) %>% data.frame() %>%
+  ungroup() %>% group_by(name) %>% mutate(prop = round(count / sum(count) *100, 2)) %>% data.frame() %>%
+  dplyr::filter(celltype %in% cts_go) %>% 
+  ggplot(aes(x = celltype, y = prop, color = name %in% c("H1", "H2"))) +
+  geom_quasirandom(width = 0.3) +
+  scale_color_manual(values = c("dodgerblue3", "black")) + 
+  pretty_plot(fontsize = 8)+ L_border() + theme(legend.position = "none") + 
+  labs(x = "Azimuth labels", y = "% of cells") + 
+  geom_vline(xintercept = 1:17 - 0.5, linetype = 2)
+cowplot::ggsave2(p1, file = "../plots/azimuth_proportions.pdf", width = 6.5, height = 2)
 
 list_of_de_mats <- lapply(cts_go, function(ct){
   print(ct)
