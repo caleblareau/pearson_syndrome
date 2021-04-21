@@ -2,6 +2,7 @@ library(Metrics)
 library(viridisLite)
 library(readr)
 library(scales)
+library(dplyr)
 
 file_path <- "../data_from_terra//summary_all_72.tsv.gz"
 merged<-as.data.frame(read_tsv(file_path))[c(1:5,8)]
@@ -28,6 +29,7 @@ rmse_info <- merged %>%
   mutate(rmse_scaled = scale(rmse_del_cond))
 rmse_info <- rmse_info[order(as.numeric(rmse_info$far)),]
 rmse_info %>% group_by(del) %>% arrange(rmse_del_cond) %>% slice_min(order_by = rmse_del_cond)
+rmse_info %>% dplyr::filter(far == 9 & near == 24)
 
 p1 <- ggplot(rmse_info, aes(x = (as.numeric(far)), y =(as.numeric(near)), fill = rmse_del_cond)) +
   geom_tile() +
@@ -64,6 +66,7 @@ rmse_info <- merged %>%
   mutate(rmse_scaled = scale(rmse_del_cond))
 rmse_info <- rmse_info[order(as.numeric(rmse_info$far)),]
 rmse_info %>% group_by(del) %>% arrange(rmse_del_cond) %>% slice_min(order_by = rmse_del_cond)
+rmse_info %>% dplyr::filter(far == 9 & near == 24)
 
 p1 <- ggplot(rmse_info, aes(x = (as.numeric(far)), y =(as.numeric(near)), fill = rmse_del_cond)) +
   geom_tile() +
