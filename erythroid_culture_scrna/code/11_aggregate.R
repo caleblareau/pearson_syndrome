@@ -9,10 +9,13 @@ soupercelldf$barcode_aggr <- paste0(substr(soupercelldf$barcode, 1, 16), "-", so
 ddvec <- c("6", "6", "6", "6", "12", "12", "12", "12")
 ccvec <- as.character(1:8)
 
-# FIlter on the good stuf
-soupercelldf <- soupercelldf %>% filter(assignment %in% c("Pearson", "Healthy") & stat == "singlet")
+# Filter on the good stuff
+soupercelldf <- soupercelldf %>% dplyr::filter(assignment %in% c("Pearson", "Healthy") & stat == "singlet")
 soupercelldf$Day <- ifelse(soupercelldf$lane %in% c("1", "2", "3", "4"), "D6", "D12")
-
+if(FALSE){
+  write.table(soupercelldf, file = "../output/Pearson_erythroid_scRNA_soupercell_assignment.tsv",
+              sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+}
 process_me <- function(idx){
   cc <- ccvec[idx]
   dd <- ddvec[idx]

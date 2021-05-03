@@ -39,6 +39,11 @@ ery_df$MDS <- ery_df$X7del < 0.3
 ery_df <- ery_df[,c("barcode", "day", "heteroplasmy", "X7del", "MDS")]
 dim(ery_df)
 
+if(FALSE){
+  write.table(ery_df, file = "../output/Pearson_erythroid_scATAC_assignment_meta.tsv",
+              sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+}
+
 # Process CD34
 dels <- fread(paste0("../../cd34_scatac/data/Pearson_CD34_PT3.deletion_heteroplasmy.tsv")) %>%
   dplyr::filter(version == "improved" & deletion == "del10381-15407") %>% dplyr::filter(reads_all >= 20)

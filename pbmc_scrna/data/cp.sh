@@ -1,0 +1,9 @@
+cp pearson_bci/barcodes.tsv.gz pearson_bci_barcodes.tsv.gz
+cp pearson_bci/features.tsv.gz pearson_bci_features.tsv.gz
+cp pearson_bci/matrix.mtx.gz pearson_bci_matrix.mtx.gz
+cp pearson_ccf/barcodes.tsv.gz pearson_ccf_barcodes.tsv.gz
+cp pearson_ccf/features.tsv.gz pearson_ccf_features.tsv.gz
+cp pearson_ccf/matrix.mtx.gz pearson_ccf_matrix.mtx.gz
+cp pearson_mds/barcodes.tsv.gz pearson_mds_barcodes.tsv.gz
+cp pearson_mds/features.tsv.gz pearson_mds_features.tsv.gz
+cp pearson_mds/matrix.mtx.gz pearson_mds_matrix.mtx.gz
