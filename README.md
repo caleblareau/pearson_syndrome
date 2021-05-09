@@ -3,7 +3,7 @@ _Caleb Lareau_
 
 This repository contains code needed to reproduce analyses and figures assocaited with this work:
 
-Lareau, _et al. _ Cellular states, evolution, and clonal dynamics in Pearson syndrome revealed via single-cell multi-omics. bioRxiv. 2021.
+Lareau, _et al._ Cellular states, evolution, and clonal dynamics in Pearson syndrome revealed via single-cell multi-omics. bioRxiv. 2021.
 
 **Note** these are the primary analysis figure : folder mapping, but a low number selected panels from other folders were used in certain figures to make supporting points. 
 
