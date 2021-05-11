@@ -16,6 +16,6 @@ Figure 5 | bmmnc_asap
 Figure 6 | erythroid_culture_scatac,erythroid_culture_scrna
 ```
 
-Questions? Raise an issue (preferably) or [email Caleb](mailto: clareau@stanford.edu)
+Questions? Raise an issue (preferably) or [email Caleb](mailto:clareau@stanford.edu)
 
 <br><br>
