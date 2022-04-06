@@ -31,6 +31,7 @@ ery_df <- rbind(
   import_mgatk_assignments("D12_1", "3", "D12"),
   import_mgatk_assignments("D12_2", "4", "D12")
 )
+dim(ery_df)
 ggplot( ery_df, aes(x = X7del)) + 
   geom_histogram()+
   facet_wrap(assign ~ day)

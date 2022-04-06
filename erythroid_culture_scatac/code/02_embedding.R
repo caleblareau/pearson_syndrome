@@ -43,6 +43,7 @@ rownames(metadata2) <- metadata2$barcode
 stopifnot(sum(metadata2$cell_id == "None") == 0)
 stopifnot(dim(metadata2)[1] == dim(assign_df)[1])
 ery <- metadata2 %>% dplyr::filter(assign == "Pearson" & reads_all > 20)
+
 #good sanity check
 ggplot(metadata2 %>% dplyr::filter(assign == "Pearson"),
        aes(x = day, y = heteroplasmy)) + geom_violin()
@@ -64,6 +65,7 @@ so <- CreateSeuratObject(
   min.cells = 1,
   meta.data = metadata3
 )
+dim(so)
 rm(counts)
 so$pct_reads_in_peaks <- so$peak_region_fragments / so$passed_filters * 100
 

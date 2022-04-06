@@ -1,6 +1,7 @@
 library(data.table)
 library(ggbeeswarm)
 library(BuenColors)
+library(dplyr)
 
 del_het <- fread("../data/all5Sample_dels.deletion_heteroplasmy.tsv")
 assign_df <- fread("../output/firstpass_assignments_mix5.tsv")
@@ -18,7 +19,7 @@ p1 <- ggplot(bdf, aes(x = fp_classify, y = heteroplasmy, color = off_target)) +
   pretty_plot(fontsize = 8) + L_border() +
   scale_color_manual(values = c("black", "firebrick")) +
   theme(legend.position = "none") + labs(x = "", y = "% Heteroplasmy")
-cowplot::ggsave2(p1, file = "../output/mix5_scatter.pdf", width = 3.5, height = 1.5)
+#cowplot::ggsave2(p1, file = "../output/mix5_scatter.pdf", width = 3.5, height = 1.5)
 
 bdf %>% dplyr::filter(!off_target) %>% group_by(fp_classify, deletion) %>% summarize(mean(heteroplasmy), median(heteroplasmy), count = n())
 bdf %>% group_by(deletion) %>% summarize(sum(off_target, na.rm = TRUE), sum(reads_all))
@@ -42,7 +43,7 @@ p1 <- ggplot(bdf, aes(x = fp_classify, y = heteroplasmy, color = off_target)) +
   pretty_plot(fontsize = 8) + L_border() +
   scale_color_manual(values = c("black", "firebrick")) +
   theme(legend.position = "none") + labs(x = "", y = "% Heteroplasmy")
-cowplot::ggsave2(p1, file = "../output/mix3_scatter.pdf", width = 3.5, height = 1.5)
+#cowplot::ggsave2(p1, file = "../output/mix3_scatter.pdf", width = 3.5, height = 1.5)
 
 bdf %>% dplyr::filter(!off_target) %>% group_by(fp_classify, deletion) %>% summarize(mean(heteroplasmy), median(heteroplasmy), count = n())
 bdf %>% group_by(deletion) %>% summarize(sum(off_target, na.rm = TRUE), sum(reads_all))

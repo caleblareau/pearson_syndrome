@@ -12,10 +12,13 @@ ccvec <- as.character(1:8)
 # Filter on the good stuff
 soupercelldf <- soupercelldf %>% dplyr::filter(assignment %in% c("Pearson", "Healthy") & stat == "singlet")
 soupercelldf$Day <- ifelse(soupercelldf$lane %in% c("1", "2", "3", "4"), "D6", "D12")
+
+
 if(FALSE){
   write.table(soupercelldf, file = "../output/Pearson_erythroid_scRNA_soupercell_assignment.tsv",
               sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 }
+
 process_me <- function(idx){
   cc <- ccvec[idx]
   dd <- ddvec[idx]
