@@ -52,4 +52,4 @@ dim(so2)
 so2@meta.data$MDS <- mds_vec[rownames(so2@meta.data)]
 so2@meta.data$module_score <- module_vec[rownames(so2@meta.data)]
 
-saveRDS(so2, file = "../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/Invitro_erythroid_scRNA_seurat_object.rds")
+saveRDS(so2, file = "../../../pearson_large_data_files/output/invitro_erythroid/Invitro_erythroid_scRNA_seurat_object.rds")

@@ -2,6 +2,7 @@ library(SummarizedExperiment)
 library(data.table)
 library(dplyr)
 library(Matrix)
+library(BuenColors)
 
 estimate_coverage_heteroplasmy <- function(coord1, coord2, mat){
   idx <- 1:dim(mat)[1]
@@ -12,7 +13,7 @@ estimate_coverage_heteroplasmy <- function(coord1, coord2, mat){
 }
 
 process_n <- function(n){
-  SE <- readRDS(paste0("../../../pearson_large_data_files/input/cellline_mix/Pearson-Mix-",n,"_v12-mtMask_mgatk.rds"))
+  SE <- readRDS(paste0("../../../pearson_large_data_files/input/cellline_mix/Pearson-Mix-",n,"_mgatk.rds"))
   summary(SE$depth >= 20)
   filt <- colData(SE)$depth >= 20 & colData(SE)$depth < 100
   assign_df <- fread(paste0("../output/firstpass_assignments_mix",n,".tsv"))
@@ -44,7 +45,7 @@ p1 <- ggplot(five_df, aes(x = fp_classify, y = value_transformed, color = off_ta
   pretty_plot(fontsize = 8) + L_border() +
   scale_color_manual(values = c("black", "firebrick")) +
   theme(legend.position = "none") + labs(x = "", y = "Coverage-based deletion heteroplasmy")
-cowplot::ggsave2(p1, file = "../output/mix5_scatter_coverage_based.pdf", width = 3.5, height = 1.5)
+#cowplot::ggsave2(p1, file = "../output/mix5_scatter_coverage_based.pdf", width = 3.5, height = 1.5)
 
 # Do a side by side comparison
 five_df$deletion <- gsub("_", "-", five_df$deletion)
@@ -62,7 +63,7 @@ mdf_filt%>%
   facet_wrap(~fp_classify) +
   pretty_plot(fontsize = 8) +
   geom_abline(intercept = 0, slope = 1/100, linetype = 2) -> pG
-cowplot::ggsave2(pG, file = "../output/compare_approaches_scatter.pdf", width = 6, height = 2)
+#cowplot::ggsave2(pG, file = "../output/compare_approaches_scatter.pdf", width = 6, height = 2)
 
 mdf_filt %>% dplyr::filter(fp_classify == "aPD1") -> aPD1
 mdf_filt %>% dplyr::filter(fp_classify == "aPD2") -> aPD2
@@ -73,5 +74,6 @@ cor(aPD2$heteroplasmy, aPD2$value_transformed)
 cor(aPD3$heteroplasmy, aPD3$value_transformed)
 
 
-      
-      
+mean(aPD1$value_transformed)*100;mean(aPD1$heteroplasmy)
+mean(aPD2$value_transformed)*100;mean(aPD2$heteroplasmy)
+mean(aPD3$value_transformed)*100;mean(aPD3$heteroplasmy)
