@@ -4,7 +4,7 @@ library(data.table)
 library(org.Hs.eg.db)
 
 # Import differential gene expression
-diff_df <- readRDS("../output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+diff_df <- readRDS("../../../pearson_large_data_files/output/pbmc/11July2022-PearsonRNAseq-diffGE-edgeR.rds")
 tl <- bitr(diff_df$gene, fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db", drop = FALSE) 
 tl <- tl[!duplicated(tl),]; name_vec <- tl[[2]]; names(name_vec) <- tl[[1]]
 diff_df$gene_id <- name_vec[as.character(diff_df$gene)]

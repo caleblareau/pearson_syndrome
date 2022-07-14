@@ -7,7 +7,7 @@ library(data.table)
 library(cowplot)
 library(SeuratDisk)
 options(future.globals.maxSize = 4000 * 1024^2)
-reference <- LoadH5Seurat("../../../pearson_large_data_files/input/pbmc_multimodal.h5seurat")
+reference <- LoadH5Seurat("../../../pearson_large_data_files/input/pbmc/pbmc_multimodal.h5seurat")
 
 # Import
 import_project_scRNAseq <- function(dir_base, name, pheno){
@@ -57,6 +57,10 @@ import_project_scRNAseq <- function(dir_base, name, pheno){
   saveRDS(df, file = paste0("../output/seurat_projected_meta_", dir_base, ".rds"))
 }
 
+
+ph1 <- import_project_scRNAseq("pediatrichealthy_pbmc_31687", "P1", "Healthy")
+ph2 <- import_project_scRNAseq("pediatrichealthy_pbmc_31697", "P2", "Healthy")
+
 pBCI <- import_project_scRNAseq("pearson_bci", "pBCI", "Pearson")
 pCCF <- import_project_scRNAseq("pearson_ccf", "pCCF", "Pearson")
 pPT3 <- import_project_scRNAseq("pearson_mds", "pPT3", "Pearson")
@@ -66,7 +70,7 @@ pbmc2 <- import_project_scRNAseq("healthy_pbmc_4k_v2-remap", "H1", "Healthy")
 pbmc3 <- import_project_scRNAseq("healthy_pbmc_5k_nextgem", "H2", "Healthy")
 pbmc4 <- import_project_scRNAseq("healthy_pbmc_5k", "H2", "Healthy")
 
-lapply(list.files("../output/", full.names = TRUE), readRDS) %>% rbindlist() %>%
+lapply(list.files("../output", full.names = TRUE, pattern = "*seurat*"), readRDS) %>% rbindlist() %>%
   group_by(predicted.celltype.l2, name) %>% summarize(count = n()) %>%
   ungroup() %>% group_by(name) %>% mutate(prop = count/ sum(count) * 100) %>% data.frame()
 

@@ -6,7 +6,7 @@ library(BuenColors)
 library(clusterProfiler)
 
 # Import genes
-diff_df <- readRDS("../output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+diff_df <- readRDS("../../../pearson_large_data_files/output/pbmc/11July2022-PearsonRNAseq-diffGE-edgeR.rds")
 organism = "org.Hs.eg.db"
 
 celltype_go = "CD14.Mono"

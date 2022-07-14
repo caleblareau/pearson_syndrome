@@ -15,9 +15,9 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   dge <- DGEList(count, group = condt)
   dge <- calcNormFactors(dge)
   
-  # adjust for sequencing technology (H2 is 10x v3), total genes detected
+  # adjust for sequencing technology (H2 is 10x v3; Hped1 and Hped2 are muliome as well), as well as total genes detected, 
   cdr <- scale(colMeans(count > 0))
-  design <- model.matrix(~ cdr + as.numeric(donor_id %in% c("H2a", "H2b")) + condt) 
+  design <- model.matrix(~ cdr + as.numeric(donor_id %in% c("H2a", "H2b")) + as.numeric(donor_id %in% c("Hped1", "Hped2")) + condt) 
   dge <- estimateDisp(dge, design = design)
   fit <- glmQLFit(dge, design = design)
   qlf <- glmQLFTest(fit)
@@ -39,6 +39,8 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   # Pull donors
   df$H1v2 <- ps(donor_id %in% c("H1a", "H1b"))
   df$H2v3 <- ps(donor_id %in% c("H2a", "H2b"))
+  df$Hped1 <- ps(donor_id %in% c("Hped1"))
+  df$Hped2 <- ps(donor_id %in% c("Hped2"))
   df$pBCI <- ps(donor_id == "pBCI")
   df$pCCF <- ps(donor_id == "pCCF")
   df$pPT3 <- ps(donor_id == "pPT3")
@@ -51,7 +53,7 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   
 }
 
-libs <- c("pearson_bci", "pearson_ccf", "pearson_mds", "healthy_pbmc_8k_v2-remap", "healthy_pbmc_4k_v2-remap", "healthy_pbmc_5k_nextgem", "healthy_pbmc_5k")
+#libs <- c("pearson_bci", "pearson_ccf", "pearson_mds", "healthy_pbmc_8k_v2-remap", "healthy_pbmc_4k_v2-remap", "healthy_pbmc_5k_nextgem", "healthy_pbmc_5k")
 import_df <- function(dir_base, short_id){
   idf <- readRDS(paste0("../output/seurat_projected_meta_", dir_base, ".rds"))
   rownames(idf) <- paste0(short_id, "_", rownames(idf))
@@ -65,12 +67,13 @@ df <- rbind(
   import_df("healthy_pbmc_8k_v2-remap", "H1a"),
   import_df("healthy_pbmc_4k_v2-remap", "H1b"),
   import_df("healthy_pbmc_5k_nextgem", "H2a"),
-  import_df("healthy_pbmc_5k", "H2b")
+  import_df("healthy_pbmc_5k", "H2b"),
+  import_df("pediatrichealthy_pbmc_31687", "Hped1"),
+  import_df("pediatrichealthy_pbmc_31697", "Hped2")
+  
 )
 df$celltype <- gsub(" ", ".", df$predicted.celltype.l2)
 ctdf <- df
-
-
 
 # Now import counts
 import_counts <- function(dir_base, short_id){
@@ -90,7 +93,9 @@ counts <- cbind(
   import_counts("healthy_pbmc_8k_v2-remap", "H1a"),
   import_counts("healthy_pbmc_4k_v2-remap", "H1b"),
   import_counts("healthy_pbmc_5k_nextgem", "H2a"),
-  import_counts("healthy_pbmc_5k", "H2b")
+  import_counts("healthy_pbmc_5k", "H2b"),
+  import_counts("pediatrichealthy_pbmc_31687", "Hped1"),
+  import_counts("pediatrichealthy_pbmc_31697", "Hped2")
 )
 
 counts <- counts[!grepl("^RP|^MT-", rownames(counts)),as.character(rownames(df))]
@@ -99,7 +104,7 @@ dim(df)
 df$barcode <- rownames(df)
 
 cts <- unique(sort(as.character(df$celltype)))
-boo_ct <- table((sort(as.character(df$celltype)))) >= 250 
+boo_ct <- table((sort(as.character(df$celltype)))) >= 400 
 cts_go <- cts[boo_ct]
 length(cts_go)
 
@@ -107,9 +112,12 @@ library(ggbeeswarm)
 p1 <- ctdf %>% group_by(celltype, name) %>% summarize(count = n())  %>% arrange((celltype)) %>% data.frame() %>%
   ungroup() %>% group_by(name) %>% mutate(prop = round(count / sum(count) *100, 2)) %>% data.frame() %>%
   dplyr::filter(celltype %in% cts_go) %>% 
-  ggplot(aes(x = celltype, y = prop, color = name %in% c("H1", "H2"))) +
+  mutate(colorme = case_when(name %in% c("H1", "H2") ~ "HealthyAdult", 
+                             name %in% c("P1", "P2") ~ "HealthyChild",
+                             TRUE ~ "Pearson")) %>% 
+  ggplot(aes(x = celltype, y = prop, color = colorme)) +
   geom_quasirandom(width = 0.3) +
-  scale_color_manual(values = c("dodgerblue3", "black")) + 
+  scale_color_manual(values = c("dodgerblue3", "green4","black")) + 
   pretty_plot(fontsize = 8)+ L_border() + theme(legend.position = "none") + 
   labs(x = "Azimuth labels", y = "% of cells") + 
   geom_vline(xintercept = 1:17 - 0.5, linetype = 2)
@@ -134,6 +142,6 @@ list_of_de_mats <- lapply(cts_go, function(ct){
 
 melted_list <- rbindlist(list_of_de_mats) %>% arrange(FDR)
 melted_list %>% arrange(desc(abs(logFC)))
-saveRDS(melted_list, file = "../../../pearson_large_data_files/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+saveRDS(melted_list, file = "../../../pearson_large_data_files/output/pbmc/11July2022-PearsonRNAseq-diffGE-edgeR.rds")
 
 
