@@ -88,3 +88,32 @@ px <- dfp9 %>%
   pretty_plot(fontsize = 7) + L_border() + labs(x = "% Heteroplasmy", y = "Cumulative fraction", color = "") +
   scale_x_continuous(limits = c(0, 100))
 cowplot::ggsave2(px, file = paste0("../plots/melas_p9_tcell_ecdf.pdf"), width = 2.3, height = 1.5)
+
+
+reanno_class <- function(df){
+  df$caleb_class <- case_when(df$predicted.celltype.l1 %in% c("CD4 T", "CD8 T", "other T") ~ "Tcell",
+                              df$predicted.celltype.l1 %in% c("Mono") ~ "Mono",
+                              df$predicted.celltype.l1 %in% c("DC") ~ "DC",
+                              df$predicted.celltype.l1 %in% c("B") ~ "Bcell",
+                              df$predicted.celltype.l1 %in% c("NK") ~ "NKcell",
+                              TRUE ~ "meh"
+  )
+  df %>% filter(caleb_class != "meh")
+}
+
+
+px <- dfp21 %>% reanno_class %>% 
+  ggplot(aes(color = caleb_class, x = heteroplasmy*100)) +
+  stat_ecdf() + scale_color_manual(values = c("orange2", "green4", "dodgerblue3","purple2", "firebrick")) +
+  pretty_plot(fontsize = 7) + L_border() + labs(x = "% Heteroplasmy", y = "Cumulative fraction", color = "") +
+  scale_x_continuous(limits = c(0, 100))
+cowplot::ggsave2(px, file = paste0("../plots/melas_p21_heme_ecdf.pdf"), width = 2.3, height = 1.5)
+
+px <- dfp9 %>%reanno_class %>% 
+  ggplot(aes(color = caleb_class, x = heteroplasmy*100)) +
+  stat_ecdf() + scale_color_manual(values = c("orange2", "green4", "dodgerblue3","purple2", "firebrick")) +
+  pretty_plot(fontsize = 7) + L_border() + labs(x = "% Heteroplasmy", y = "Cumulative fraction", color = "") +
+  scale_x_continuous(limits = c(0, 100))
+cowplot::ggsave2(px, file = paste0("../plots/melas_p9_heme_ecdf.pdf"), width = 2.3, height = 1.5)
+
+
