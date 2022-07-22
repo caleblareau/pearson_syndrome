@@ -40,7 +40,7 @@ df_4 <- fread("../data/deletion_heteroplasmy/PearsonCulture_Day21_del.deletion_h
 # Combine everything
 het_df <- rbind(df_2, df_3) %>% data.frame() # df_1
 rownames(het_df) <- het_df[["barcode"]]
-mdf <- merge(summary_csv, het_df, all.x = TRUE, by = "row.names")
+mdf <- merge(summary_csv, het_df,  by = "row.names")
 rownames(mdf) <- mdf[["Row.names"]]
 dim(mdf)
 dim(summary_csv)
@@ -79,7 +79,7 @@ dim(pbmc2)
 
 # Filter
 pbmc2$pct_reads_in_peaks <- pbmc2$pct_reads_in_peaks <- pbmc2$peak_region_fragments / pbmc2$passed_filters *100
-pbmc2 <- subset(pbmc2, subset = mtDNA_depth > 10 & passed_filters > 1000 & pct_reads_in_peaks > 40)
+pbmc2 <- subset(pbmc2, subset = reads_all > 10 & passed_filters > 1000 & pct_reads_in_peaks > 40)
 dim(pbmc2)
 
 # Add patient name too 
@@ -88,26 +88,6 @@ pbmc2@meta.data$cultureID <- ptid
 pbmc2@meta.data$timepoint <- case_when(ptid == "1" ~ "aPBMC", ptid  %in% c("2", "3") ~ "Day14",ptid == "4" ~ "Day21", TRUE ~ "Healthy")
 
 table(pbmc2@meta.data$timepoint )
-
-pbmc2 <- FindTopFeatures(pbmc2, min.cutoff = 'q50')
-
-# Run linear dimension reduction (very similar to PCA)
-pbmc2 <- RunSVD(
-  object = pbmc2,
-  assay = 'peaks',
-  reduction.key = 'LSI_',
-  reduction.name = 'lsi'
-)
-
-# Commands for a 2D embedding and graph-based clustering
-set.seed(2020)
-pbmc2 <- RunUMAP(object = pbmc2, reduction = 'lsi', dims = 2:30)
-DimPlot(object = pbmc2, group.by = "timepoint" )
-
-DefaultAssay(pbmc2) <- "peaks"
-pbmc2 <- FindNeighbors(pbmc2, reduction = "lsi")
-pbmc2 <- FindClusters(object = pbmc2, resolution = 0.5)
-DimPlot(object = pbmc2,  label = TRUE)
 
 # Import ADT
 import_kite_counts <- function(library, id){
@@ -121,31 +101,102 @@ import_kite_counts <- function(library, id){
 }
 tag_mat <- cbind(import_kite_counts("1", "2"), import_kite_counts("2", "3"))
 
-# Add ADT and normalize
+# Add ADT, subset, and normalize
 pbmc2[["ADT"]] <- CreateAssayObject(counts = tag_mat[,colnames(tag_mat) %in% colnames(pbmc2)], assay = "ADT")
-DefaultAssay(pbmc2) < "ADT"
-pbmc2 <- NormalizeData(pbmc2, assay = "ADT", normalization.method = "CLR")
-pbmc2 <- ScaleData(pbmc2, assay="ADT")
+pbmc2@meta.data$nADT_control = colSums(pbmc2[["ADT"]]@counts[grepl("control", rownames(pbmc2[["ADT"]]@counts)),])
+pbmc2@meta.data$nADT_total <- colSums(pbmc2[["ADT"]]@counts)
 
-DefaultAssay(pbmc2) < "peaks"
-FeaturePlot(object = pbmc2, features = "heteroplasmy" ) +
-  scale_color_viridis()
+pbmc2 <- subset(pbmc2, subset = pbmc2@meta.data$nADT_control/nADT_total < 0.02 & nADT_total > 150 & nADT_total < 1e4)
+dim(pbmc2)
 
-set.seed(1)
-cormat <- cor(pbmc2@meta.data$heteroplasmy,t(data.matrix(pbmc2@assays$ADT@data)),
-              use = "pairwise.complete")
-perm_cormat <- cor(sample(pbmc2@meta.data$heteroplasmy), t(data.matrix(pbmc2@assays$ADT@data)),
-                   use = "pairwise.complete")
+# Run linear dimension reduction
+DefaultAssay(pbmc2) <- "peaks"
+pbmc2 <- FindTopFeatures(pbmc2, min.cutoff = 'q50')
 
-obs_df <- data.frame(
-  gene = colnames(cormat),
-  cor = cormat[1,]
-) %>% dplyr::filter(!is.na(cor)) %>% arrange(desc(cor)) %>% mutate(rank = 1:n(), what = "observed") 
-obs_df
+pbmc2 <- RunSVD(
+  object = pbmc2,
+  assay = 'peaks',
+  reduction.key = 'LSI_',
+  reduction.name = 'lsi'
+)
+
+# Commands for a 2D embedding and graph-based clustering
+set.seed(2022)
+pbmc2 <- FindNeighbors(pbmc2, reduction = "lsi", dims = 2:20, graph.name = "LSI")
+pbmc2 <- RunUMAP(object = pbmc2, reduction = 'lsi', dims = 2:20)
+pbmc2 <- FindClusters(object = pbmc2, resolution = 1.2, algorithm = 3, graph.name = "LSI")
+DimPlot(object = pbmc2,  label = TRUE, reduction = "umap")
+
+pbmc2$caleb_cluster <- case_when(
+  pbmc2$seurat_clusters %in% c(6) ~ "CD8/CD45RAhi",
+  pbmc2$seurat_clusters %in% c(7,12) ~ "CD4/CD45RAhi",
+  pbmc2$seurat_clusters %in% c(1) ~ "CD4/CD27hi/CD45RAhi",
+  pbmc2$seurat_clusters %in% c(2,5,8,10,13) ~ "CD8/CD45RAlow" ,
+  pbmc2$seurat_clusters %in% c(0,3,4,9,11) ~ "CD4/CD45RAlow" 
+)
+
+DimPlot(object = pbmc2,  label = TRUE, reduction = "umap", group.by = "caleb_cluster")
+
+p2 <- ggplot(pbmc2@meta.data, aes(x = heteroplasmy, color = caleb_cluster)) +
+  stat_ecdf() +
+  scale_color_manual(values = jdb_palette("corona")) +
+  pretty_plot(fontsize = 7) + L_border() + labs(x = "% Heteroplasmy", y = "Cumulative fraction", color = "") +
+  scale_x_continuous(limits = c(0, 100))
+cowplot::ggsave2(p2, file = paste0("../plots/ecdf_tcell_clusters_day14.pdf"), width = 2.9, height = 1.5)
+
+# Process ADT data
+DefaultAssay(pbmc2) <- 'ADT'
+VariableFeatures(pbmc2) <- rownames(pbmc2[["ADT"]])
+pbmc2 <- NormalizeData(pbmc2, normalization.method = 'CLR', margin = 2) %>% 
+  ScaleData() %>% RunPCA(reduction.name = 'apca')
+FeaturePlot(object = pbmc2, features = c("CD3D", "CD4", "CD8A", "CD55", "CD27",
+                                         "CD45RA", "ITGA2", "ITGA4", "CD63", "CD45RO", "heteroplasmy"),
+            sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") & scale_color_viridis()
+
+FeaturePlot(object = pbmc2, features = c("CD3D", "CD4", "CD8A", "CD55", "CD27",
+                                         "CD45RA", "ITGA2", "ITGA4", "CD63", "CD45RO", "heteroplasmy"),
+            sort.cell = FALSE, max.cutoff = "q95", reduction = "umap") & scale_color_viridis()
+
+# Export plots
+p1 <- FeaturePlot(object = pbmc2, features = c("CD8A"),
+            sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/cd8a.png", width = 3, height = 3, dpi = 400)
+
+p1 <- FeaturePlot(object = pbmc2, features = c("heteroplasmy"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/heteroplasmy.png", width = 3, height = 3, dpi = 400)
+
+p1 <- FeaturePlot(object = pbmc2, features = c("CD4"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/cd4.png", width = 3, height = 3, dpi = 400)
+
+p1 <- FeaturePlot(object = pbmc2, features = c("CD27"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/cd27png", width = 3, height = 3, dpi = 400)
+
+p1 <- FeaturePlot(object = pbmc2, features = c("CD45RA"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/cd45ra.png", width = 3, height = 3, dpi = 400)
+
+p1 <- FeaturePlot(object = pbmc2, features = c("CD45RA"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/cd45ra.png", width = 3, height = 3, dpi = 400)
+
+p1 <- DimPlot(object = pbmc2, group.by = "caleb_cluster",
+                  reduction = "umap") + scale_color_manual(values = jdb_palette("corona"))+
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/clabels.png", width = 3, height = 3, dpi = 400)
+
+#######
 
 
-FeaturePlot(object = pbmc2, features = c("CD3D", "CD4", "CD8A", "CD55", "CD27", "CD45RA", "ITGA2", "ITGA4", "CD63", "CD45RO"),
-            sort.cell = TRUE, max.cutoff = "q95") & scale_color_viridis()
+VlnPlot(pbmc2, features = c("CD4", "CD8A", "heteroplasmy", "CD45RA"))
 
 DefaultAssay(pbmc2) <- "ADT"
 pbmc2@meta.data %>%
@@ -157,6 +208,7 @@ ggplot(pbmc2@meta.data, aes(x = cultureID, y = heteroplasmy)) +
   geom_violin()
 
 # add the gene information to the object
+DefaultAssay(pbmc2) <- "peaks"
 Annotation(pbmc2) <- annotations
 
 # create a gene activity by cell matrix
@@ -170,33 +222,6 @@ pbmc2 <- NormalizeData(
   scale.factor = median(pbmc2$nCount_RNA)
 )
 
-# Pearson correlation to see factors most associated with activation / not
-set.seed(1)
-cormat <- cor(pbmc2@meta.data$heteroplasmy,t(data.matrix(pbmc2@assays$RNA@data)),
-              use = "pairwise.complete")
-perm_cormat <- cor(sample(pbmc2@meta.data$heteroplasmy), t(data.matrix(pbmc2@assays$RNA@data)),
-                   use = "pairwise.complete")
-
-obs_df <- data.frame(
-  gene = colnames(cormat),
-  cor = cormat[1,]
-) %>% dplyr::filter(!is.na(cor)) %>% arrange(desc(cor)) %>% mutate(rank = 1:n(), what = "observed") 
-obs_df
-
-write.table(obs_df, file = "../output/heteroplasmy_Tcell_association_ranking.tsv", 
-            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
-
-perm_df <- data.frame(
-  gene = colnames(perm_cormat),
-  cor = perm_cormat[1,]
-) %>% dplyr::filter(!is.na(cor)) %>% arrange(desc(cor)) %>% mutate(rank = 1:n(), what = "permuted") 
-
-p1 <- ggplot(obs_df, aes(x = rank, y = cor)) + 
-  geom_point(size = 0.2) + scale_color_manual(values = c("black", "firebrick"))  + 
-  geom_point(inherit.aes = FALSE, data = perm_df, aes(x = rank, y = cor), color = "lightgrey", size = 0.2) +
-  labs(x = "Rank sorted genes", y = "Correlation") + 
-  pretty_plot(fontsize = 8) + L_border() + 
-  theme(legend.position = "none") + theme_void()
-cowplot::ggsave2(p1, file = "../plots/Tcell_heteroplasmy_assoc.png", width = 3, height = 3, dpi = 500)
-
+DefaultAssay(pbmc2) <- "RNA"
+FeaturePlot(pbmc2, features = c("LEF1", "CD8A", "CD4"), reduction = "umap")
 saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/Tcell_scATAC_culture.rds")
