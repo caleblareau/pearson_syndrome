@@ -18,9 +18,26 @@ df671 <- make_combined_df("NAMDC20008038671")
 df507 <- make_combined_df("NAMDC18207019507")
 
 
-df550 %>% filter(heteroplasmy > 0) 
-df671 %>% filter(heteroplasmy > 0) 
-df507 %>% filter(heteroplasmy > 0) 
+sum(df550$reads_del)/sum(df550$reads_all)*100
+sum(df671$reads_del)/sum(df671$reads_all)*100
+sum(df507$reads_del)/sum(df507$reads_all)*100
+
+df550 %>% mutate(nzh = heteroplasmy > 0) %>%
+  group_by(predicted.celltype.l2) %>%
+  summarize(prop = sum(nzh)/length(nzh)*100, n = sum(nzh)) %>%
+  filter(prop > 0) %>% arrange(desc(prop))
+
+df671 %>% mutate(nzh = heteroplasmy > 0) %>%
+  group_by(predicted.celltype.l2) %>%
+  summarize( n = sum(nzh)) %>%
+  filter(n > 0) %>% arrange(desc(n))
+
+df507 %>% mutate(nzh = heteroplasmy > 0) %>%
+  group_by(predicted.celltype.l2) %>%
+  summarize(prop = sum(nzh)/length(nzh)*100, n = sum(nzh)) %>%
+  filter(prop > 0) %>% arrange(desc(prop))
+
+
 
 df671$heteroplasmy <- ifelse(df671$heteroplasmy  > 50, 50, df671$heteroplasmy )
 p1 <- ggplot(df671 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
@@ -57,10 +74,10 @@ make_combined_df_special <- function(x){
 df507 <- make_combined_df_special("NAMDC18207019507")
 df507$heteroplasmy <- ifelse(df507$heteroplasmy  > 50, 50, df507$heteroplasmy )
 df507 %>% filter(heteroplasmy > 0) 
-p3 <- ggplot(df507 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
+p4 <- ggplot(df507 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
   geom_point(size = 3) + scale_color_gradientn(colors = c("lightgrey", "firebrick"))  + pretty_plot() +
   theme_void() + theme(legend.position = "none") +labs(color = "")
-p3
+cowplot::ggsave2(p4, file = "../plots/namdc_small-del.png", width = 8, height = 8, dpi = 400)
 
 df671 %>% group_by(predicted.celltype.l2) %>%
   summarize(count = n(), pct_nonzero_het = mean(heteroplasmy > 0)*100) %>%

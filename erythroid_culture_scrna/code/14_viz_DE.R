@@ -13,7 +13,7 @@ Rank_summarize_zscore_ery %>% dplyr::filter(gene %in% c("PHGDH", "PSAT1", "PSPH"
 Rank_summarize_zscore_ery %>% dplyr::filter(gene %in% c("PHGDH", "PSAT1", "PSPH", "SHMT1", "SHMT2"))
 
 
-df <- readRDS("../../pbmc_scrna/output/20Dec-PearsonRNAseq-diffGE-edgeR.rds")
+df <- readRDS("../../pbmc_scrna/output/24July2022-PearsonRNAseq-diffGE-edgeR.rds")
 df$Zstat <- qnorm((1E-250 + df$PValue)/2) * sign(df$logFC) * -1
 
 df %>% group_by(gene) %>%
@@ -25,6 +25,8 @@ p1 <- ggplot(Rank_summarize_zscore_ery, aes(x = rank, y = SZ)) +
   geom_point(size = 0.5) + pretty_plot(fontsize = 8) + L_border() +
   geom_hline(yintercept = 0, linetype = 2) +
   labs(x = "Association rank", y = "Mean z-score")
+p1
+
 cowplot::ggsave2(p1, file = "../plots/go_zscore.pdf", width =1.62, height = 2)
 
 mdf_other <- merge(Rank_summarize_zscore_pbmc, Rank_summarize_zscore_ery, by = "gene") %>%
@@ -35,5 +37,5 @@ mdf_other %>% dplyr::filter(mLogFC.x  < -0.2 & mLogFC.y < -0.2 & (MP.x/MH.x)<1 &
 mdf_other %>% dplyr::filter(mLogFC.x  > 0.2 & mLogFC.y  > 0.2 & (MP.x/MH.x)>1 & (MP.y/MH.y)>1)  %>% pull(gene) %>%
   data.frame() %>% write.table(quote = FALSE, row.names = FALSE)
 
-ggplot(mdf_other, aes(x = signedTstat, y = SZ)) + 
+ggplot(mdf_other, aes(x = SZ.x, y = SZ.y)) + 
   geom_point()

@@ -21,55 +21,35 @@ df_PT3 <- merge(fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heter
                 fread(paste0("../data/reference_projection/PT3_refmapped.csv.gz")),
                 by.y = "cb", by.x = "cell_id") %>%filter(reads_all >= 10) 
 
-tcell_types <- c("MAIT", "CD8 TEM", "CD4 TCM", "CD4 Naive", "CD8 Naive")
+# append permuted heteroplasmy
+add_permuted_heteroplasmy <- function(df, celltype, donor){
+  df <- df %>% filter(predicted.celltype.l2 == celltype)
+  set.seed(1)
+  df$permuted_heteroplasmy <- rbinom(n = length(df$reads_all), size = df$reads_all, prob = sum(df$reads_del)/sum(df$reads_all))/df$reads_all*100
+  reshape2::melt(df[,c("heteroplasmy", "permuted_heteroplasmy")]) %>% 
+    mutate(donor, celltype)
+}
 
-bci_bc <- df_BCI %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy < 0.01) %>% pull(cell_id)
+rdf <- rbind(
+  add_permuted_heteroplasmy(df_BCI, "CD8 Naive", "PT1"),
+  add_permuted_heteroplasmy(df_BCI, "CD8 TEM", "PT1"),
+  add_permuted_heteroplasmy(df_BCI, "MAIT", "PT1"),
+  add_permuted_heteroplasmy(df_CCF, "CD8 Naive", "PT2"),
+  add_permuted_heteroplasmy(df_CCF, "CD8 TEM", "PT2"),
+  add_permuted_heteroplasmy(df_CCF, "MAIT", "PT2"),
+  add_permuted_heteroplasmy(df_PT3, "CD8 Naive", "PT3"),
+  add_permuted_heteroplasmy(df_PT3, "CD8 TEM", "PT3"),
+  add_permuted_heteroplasmy(df_PT3, "MAIT", "PT3")
+)
 
-ccf_bc <- df_CCF %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy < 0.01) %>% pull(cell_id)
-
-pt3_bc <- df_PT3 %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy < 0.01) %>% pull(cell_id)
-
-bci_mean_purified <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-BCI_mgatk.rds"))[["coverage"]][,bci_bc])
-ccf_mean_purified <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-CCF_mgatk.rds"))[["coverage"]][,ccf_bc])
-pt3_mean_purified <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-PT3_mgatk.rds"))[["coverage"]][,pt3_bc])
-
-bci_bc2 <- df_BCI %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy > 30) %>% pull(cell_id)
-
-ccf_bc2 <- df_CCF %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy >30) %>% pull(cell_id)
-
-pt3_bc2 <- df_PT3 %>%
-  dplyr::filter(predicted.celltype.l2 == "CD8 TEM") %>%
-  dplyr::filter(heteroplasmy > 30) %>% pull(cell_id)
-
-bci_mean_there <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-BCI_mgatk.rds"))[["coverage"]][,bci_bc2])
-ccf_mean_there <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-CCF_mgatk.rds"))[["coverage"]][,ccf_bc2])
-pt3_mean_there <- rowMeans(assays(readRDS("../../../pearson_large_data_files/input/pbmcs_scatac/mgatk-output/Pearson-PBMC-PT3_mgatk.rds"))[["coverage"]][,pt3_bc2])
-
-pb1 <- qplot(1:length(bci_mean_purified), bci_mean_purified)
-pc1 <- qplot(1:length(ccf_mean_purified), ccf_mean_purified)
-pp1 <- qplot(1:length(pt3_mean_purified), pt3_mean_purified)
-
-pb2 <- qplot(1:length(bci_mean_there), bci_mean_there)
-pc2 <- qplot(1:length(ccf_mean_there), ccf_mean_there)
-pp2 <- qplot(1:length(pt3_mean_there), pt3_mean_there)
-
-library(patchwork)
-pb1 + pc1 + pp1 +
-pb2 + pc2 + pp2
-
-df_PT3 %>%
-  group_by(predicted.celltype.l2) %>%
-  summarize(mean_covearge = mean(reads_all), count = n()) %>%
-  filter(count > 50)
+library(ggbeeswarm)
+p1 <- ggplot(rdf, aes(x = celltype, y = value, color = variable)) +
+  geom_point(size = 0.1, position= position_jitterdodge()) + 
+  facet_wrap(~donor) +
+  scale_color_manual(values = c("black", "darkgrey")) +
+  geom_violin(fill = NA,aes(color = variable),scale = "width") + 
+  pretty_plot(fontsize = 7)  + theme(legend.position = "none") + 
+  labs( x= "Celltype", y = "Heteroplasmy (%)")
+cowplot::ggsave2(p1, file = "../plots/permuted_Tcell_coverage.pdf", width = 6.5, height = 2)
 
 

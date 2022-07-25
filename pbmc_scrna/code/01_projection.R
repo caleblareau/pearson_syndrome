@@ -6,6 +6,7 @@ library(Matrix)
 library(data.table)
 library(cowplot)
 library(SeuratDisk)
+
 options(future.globals.maxSize = 4000 * 1024^2)
 reference <- LoadH5Seurat("../../../pearson_large_data_files/input/pbmc/pbmc_multimodal.h5seurat")
 
@@ -70,6 +71,7 @@ pbmc2 <- import_project_scRNAseq("healthy_pbmc_4k_v2-remap", "H1", "Healthy")
 pbmc3 <- import_project_scRNAseq("healthy_pbmc_5k_nextgem", "H2", "Healthy")
 pbmc4 <- import_project_scRNAseq("healthy_pbmc_5k", "H2", "Healthy")
 
+# Enrich me
 lapply(list.files("../output", full.names = TRUE, pattern = "*seurat*"), readRDS) %>% rbindlist() %>%
   group_by(predicted.celltype.l2, name) %>% summarize(count = n()) %>%
   ungroup() %>% group_by(name) %>% mutate(prop = count/ sum(count) * 100) %>% data.frame()

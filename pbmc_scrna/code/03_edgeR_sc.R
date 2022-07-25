@@ -14,10 +14,9 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   donor_id <- str_split_fixed(colnames(count), "_", 2)[,1]
   dge <- DGEList(count, group = condt)
   dge <- calcNormFactors(dge)
-  
-  # adjust for sequencing technology (H2 is 10x v3; Hped1 and Hped2 are muliome as well), as well as total genes detected, 
+    # adjust for sequencing technology (H2 is 10x v3; Hped1 and Hped2 are muliome as well), as well as total genes detected, 
   cdr <- scale(colMeans(count > 0))
-  design <- model.matrix(~ cdr + as.numeric(donor_id %in% c("H2a", "H2b")) + as.numeric(donor_id %in% c("Hped1", "Hped2")) + condt) 
+  design <- model.matrix(~ cdr + as.numeric(donor_id %in% c("H2a", "H2b")) + condt) 
   dge <- estimateDisp(dge, design = design)
   fit <- glmQLFit(dge, design = design)
   qlf <- glmQLFTest(fit)
@@ -28,22 +27,21 @@ run_edgeRQLFDetRate_CL <- function(count, condt) {
   # small function to pull CPM
   ps <- function(which_ones){
     rs <- rowSums(count[,which_ones])
-    cpms <- round(rs/sum(rs) *1000000,1)[as.character(df$gene)]
+    cpms <- round(rs/sum(rs) *1000000,0)[as.character(df$gene)]
     return(cpms)
   } 
   
   # Pull CPM values
-  df$Pearson_cpm <- ps(condt == "p")
-  df$Healthy_cpm <- ps(condt == "H")
+  df$Pearson_cpm <- ps(condt == "p")[df$gene]
+  df$pBCI <- ps(donor_id == "pBCI")[df$gene]
+  df$pCCF <- ps(donor_id == "pCCF")[df$gene]
+  df$pPT3 <- ps(donor_id == "pPT3")[df$gene]
   
-  # Pull donors
-  df$H1v2 <- ps(donor_id %in% c("H1a", "H1b"))
-  df$H2v3 <- ps(donor_id %in% c("H2a", "H2b"))
-  df$Hped1 <- ps(donor_id %in% c("Hped1"))
-  df$Hped2 <- ps(donor_id %in% c("Hped2"))
-  df$pBCI <- ps(donor_id == "pBCI")
-  df$pCCF <- ps(donor_id == "pCCF")
-  df$pPT3 <- ps(donor_id == "pPT3")
+  df$Healthy_cpm <- ps(condt == "H")[df$gene]
+  df$Hped1 <- ps(donor_id %in% c("Hped1"))[df$gene]
+  df$Hped2 <- ps(donor_id %in% c("Hped2"))[df$gene]
+  df$HA1 <- ps(donor_id %in% c("H1a", "H1b"))[df$gene]
+  df$HA2 <- ps(donor_id %in% c("H2a", "H2b"))[df$gene]
   
   # Round
   df$logFC <- round(df$logFC,2)
@@ -117,11 +115,11 @@ p1 <- ctdf %>% group_by(celltype, name) %>% summarize(count = n())  %>% arrange(
                              TRUE ~ "Pearson")) %>% 
   ggplot(aes(x = celltype, y = prop, color = colorme)) +
   geom_quasirandom(width = 0.3) +
-  scale_color_manual(values = c("dodgerblue3", "green4","black")) + 
+  scale_color_manual(values = c("black","dodgerblue3", "firebrick")) + 
   pretty_plot(fontsize = 8)+ L_border() + theme(legend.position = "none") + 
   labs(x = "Azimuth labels", y = "% of cells") + 
   geom_vline(xintercept = 1:17 - 0.5, linetype = 2)
-cowplot::ggsave2(p1, file = "../plots/azimuth_proportions.pdf", width = 6.5, height = 2)
+#cowplot::ggsave2(p1, file = "../plots/azimuth_proportions.pdf", width = 6.5, height = 1.6)
 
 list_of_de_mats <- lapply(cts_go, function(ct){
   print(ct)
@@ -142,6 +140,4 @@ list_of_de_mats <- lapply(cts_go, function(ct){
 
 melted_list <- rbindlist(list_of_de_mats) %>% arrange(FDR)
 melted_list %>% arrange(desc(abs(logFC)))
-saveRDS(melted_list, file = "../../../pearson_large_data_files/output/pbmc/11July2022-PearsonRNAseq-diffGE-edgeR.rds")
-
-
+saveRDS(melted_list, file = "../output/24July2022-PearsonRNAseq-diffGE-edgeR.rds")

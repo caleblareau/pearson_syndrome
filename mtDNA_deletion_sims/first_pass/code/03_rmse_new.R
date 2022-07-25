@@ -28,7 +28,7 @@ process_fp <- function(rl,extra){
   
   rmse_info <- merged %>%
     group_by(del, far, near) %>%
-    summarise(rmse_del_cond = rmse(heteroplasmy, true_heteroplasmy)) %>%
+    summarise(rmse_del_cond = rmse(heteroplasmy, true_heteroplasmy), meand = mean(depth)) %>%
     mutate(rmse_diff = rmse_del_cond - min(rmse_del_cond),
            near_far = paste0(far, "_", near))
   rmse_info <- rmse_info[order(as.numeric(rmse_info$far)),]

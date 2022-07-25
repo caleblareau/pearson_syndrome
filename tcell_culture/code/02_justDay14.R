@@ -225,3 +225,11 @@ pbmc2 <- NormalizeData(
 DefaultAssay(pbmc2) <- "RNA"
 FeaturePlot(pbmc2, features = c("LEF1", "CD8A", "CD4"), reduction = "umap")
 saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/Tcell_scATAC_culture.rds")
+
+DefaultAssay(pbmc2) <- "ADT"
+Idents(object = pbmc2) <- pbmc2$caleb_cluster
+fam <- FindAllMarkers(pbmc2, only.pos = TRUE)
+write.table(fam[,c("cluster", "gene")], row.names = FALSE, quote = FALSE)
+
+FeaturePlot(object = pbmc2, features = unique(rownames(fam)),
+             sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") & scale_color_viridis() 
