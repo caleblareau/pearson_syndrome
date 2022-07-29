@@ -5,7 +5,29 @@ library(dplyr)
 library(ggrastr)
 library(BuenColors)
 
+# Do the Granja reference data
 peaks_cd34 <-diffloop::bedToGRanges("../data/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.peaks.bed")
+counts <- fread("../../../pearson_large_data_files/input/CD34/GSE129785_scATAC-Hematopoiesis-CD34.mtx.gz", skip = 2)
+barcodes_found <- fread("../data/granja_cd34/GSE129785_scATAC-Hematopoiesis-CD34.cell_barcodes.txt")[[1]]
+m <- Matrix::sparseMatrix(i = c(counts[[1]], length(peaks_cd34)),
+                          j = c(counts[[2]], length(barcodes_found)),
+                          x = c(counts[[3]],0))
+colnames(m) <- barcodes_found
+
+# Make a polished colData
+colData <- data.frame(
+  sample = barcodes_found
+)
+# Make sure that the SE can be correctly constructed
+stopifnot(all(colData$sample == colnames(m)))
+
+# Make summarized Experiment
+SE <- SummarizedExperiment::SummarizedExperiment(
+  rowRanges = peaks_cd34,
+  assays = list(counts = m),
+  colData = colData
+)
+saveRDS(SE,"../../../pearson_large_data_files/input/CD34/granja_10X_CD34.rds")
 
 # function to get counts
 getCountsFromFrags <- function(frag_gz_file,
@@ -74,7 +96,7 @@ importExperiment <- function(exp, peaks, frip_threshold){
   df$keep <- log10(df$depth) >= 3 & df$FRIP >= frip_threshold & df$mtDNAcoverage >= 20
   
   SE2 <- SE[, df$keep]
-  saveRDS(SE2, file = paste0("../../../pearson_large_data_files/output/", exp, "_SummarizedExperiment.rds"))
+  saveRDS(SE2, file = paste0("../../../pearson_large_data_files/output/bone_marrow/", exp, "_SummarizedExperiment.rds"))
   write.table(df, file = paste0("../output/barcode_qc/", exp, ".barcode_qc.tsv"), sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   print(dim(SE2))
 }

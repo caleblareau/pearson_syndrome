@@ -16,7 +16,7 @@ source("01a_LSI_project_helpers.R")
 nTop = 25000
 
 # Use Granja data as base
-SE <- readRDS("../../../pearson_large_data_files/input/CD34/granja_cd34/granja_10X_CD34.rds")
+SE <- readRDS("../../../pearson_large_data_files/input/CD34/granja_10X_CD34.rds")
 SE <- SE[,colData(SE)$Group != "CD34_Progenitors_Rep2"]
 
 #Run LSI 1st Iteration
@@ -73,7 +73,7 @@ p1 <- ggplot(projection_df_C1[dim(projection_df_C1)[1]:1,], aes(x= umap1, y = um
   pretty_plot() + L_border() + theme(legend.position = "bottom") +
   scale_color_manual(values = c(ejc_color_maps, "none" = "lightgrey"))
 
-sel <- readRDS("../../../pearson_large_data_files/output/Pearson-CD34-PT3_SummarizedExperiment.rds")
+sel <- readRDS("../../../pearson_large_data_files/output/bone_marrow/Pearson-CD34-PT3_SummarizedExperiment.rds")
 lsiProjection <- projectLSI((assay(sel)[varPeaks,]), lsi2)
 umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
@@ -91,7 +91,7 @@ p2 <- ggplot(projection_df_pearson_pt[dim(projection_df_pearson_pt)[1]:1,], aes(
   scale_color_manual(values = c("Pearson" = "firebrick", "base" = "lightgrey"))
 
 
-sel <- readRDS("../../../pearson_large_data_files/output/CD34_G10_SummarizedExperiment.rds")
+sel <- readRDS("../../../pearson_large_data_files/output/bone_marrow/CD34_G10_SummarizedExperiment.rds")
 lsiProjection <- projectLSI((assay(sel)[varPeaks,]), lsi2)
 umapProjection <- round(predict(umap, data.matrix(lsiProjection[,2:25])), 2)
 
