@@ -1,0 +1,12 @@
+GO:0008152	metabolic process	7775
+GO:0065007	biological regulation	7651
+GO:0050896	response to stimulus	5502
+GO:0016043	cellular component organization	4448
+GO:0051179	localization	4297
+GO:0032501	multicellular organismal process	4149
+GO:0007154	cell communication	3872
+GO:0032502	developmental process	3733
+GO:0051704	multi-organism process	1578
+GO:0008283	cell proliferation	1312
+GO:0000003	reproduction	796
+GO:0040007	growth	626
