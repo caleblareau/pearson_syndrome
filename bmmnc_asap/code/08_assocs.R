@@ -4,7 +4,7 @@ library(dplyr)
 library(broom)
 library(Matrix)
 mtDNA_variants <- readRDS("../output/interesting_AFs.rds")
-pearson_asap <- readRDS( "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+pearson_asap <- readRDS("../../../pearson_large_data_files/output/bone_marrow/pearson_asap_master_object.rds")
 
 keep_cells <- intersect(colnames(mtDNA_variants), colnames(pearson_asap))
 not_mds <- (pearson_asap@meta.data[keep_cells, "chr7"] == "Wildtype")

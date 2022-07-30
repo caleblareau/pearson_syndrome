@@ -8,7 +8,7 @@ library(patchwork)
 
 # import the data
 
-pearson_asap <- readRDS( "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+pearson_asap <- readRDS( "../../../pearson_large_data_files/output/bone_marrow/pearson_asap_master_object.rds")
 DimPlot(pearson_asap, label = TRUE)
 DefaultAssay(pearson_asap) <- "ADT"
 

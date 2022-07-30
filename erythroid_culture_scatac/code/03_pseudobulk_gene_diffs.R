@@ -38,16 +38,16 @@ gene_df$overall_mean <- round(rowMeans(data.matrix(gene_df)[,2:9]), 2)
 gene_df$D06_logFC <- round(log2((gene_df$Pearson_D6_1 + gene_df$Pearson_D6_2 + 1)/(gene_df$Control_D6_1 + gene_df$Control_D6_2 + 1)),2)
 gene_df$D12_logFC <- round(log2((gene_df$Pearson_D12_1 + gene_df$Pearson_D12_2 + 1)/(gene_df$Control_D12_1 + gene_df$Control_D12_2 + 1)),2)
 
-write.table(gene_df %>% arrange(desc(D12_logFC)) , file = "../output/Pearson_invitroErythroid_diff_geneScores.tsv", 
-            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+#write.table(gene_df %>% arrange(desc(D12_logFC)) , file = "../output/Pearson_invitroErythroid_diff_geneScores.tsv", 
+#            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
 #---
 # Make bigwigs
 #---
 
-d12_1_frags <- fread("../../../pearson_mtscatac_large_data_files/input/invitro_ery_diff/fragments/Pearson_Healthy_D12_1_v12-mtMask.fragments.tsv.gz")
-d12_2_frags <- fread("../../../pearson_mtscatac_large_data_files/input/invitro_ery_diff/fragments/Pearson_Healthy_D12_2_v12-mtMask.fragments.tsv.gz")
-d6_1_frags <- fread("../../../pearson_mtscatac_large_data_files/input/invitro_ery_diff/fragments/Pearson_Healthy_D6_1_v12-mtMask.fragments.tsv.gz")
-d6_2_frags <- fread("../../../pearson_mtscatac_large_data_files/input/invitro_ery_diff/fragments/Pearson_Healthy_D6_2_v12-mtMask.fragments.tsv.gz")
+d12_1_frags <- fread("../../../pearson_large_data_files/input/erythroid-culture/atac/individual/Pearson_Healthy_D12_1_v12-mtMask.fragments.tsv.gz")
+d12_2_frags <- fread("../../../pearson_large_data_files/input/erythroid-culture/atac/individual/Pearson_Healthy_D12_2_v12-mtMask.fragments.tsv.gz")
+d6_1_frags <- fread("../../../pearson_large_data_files/input/erythroid-culture/atac/individual/Pearson_Healthy_D6_1_v12-mtMask.fragments.tsv.gz")
+d6_2_frags <- fread("../../../pearson_large_data_files/input/erythroid-culture/atac/individual/Pearson_Healthy_D6_2_v12-mtMask.fragments.tsv.gz")
 
 
 process_frags <- function(lib1, lib2, frags1, frags2, day){
@@ -65,12 +65,12 @@ process_frags <- function(lib1, lib2, frags1, frags2, day){
   frags_c_gr <- makeGRangesFromDataFrame(rbind(frags1[frags1$V4 %in% control_cells1,], frags2[frags2$V4 %in% control_cells2,]), 
                                          seqnames.field = "V1", start.field = "V2", end.field = "V3")
   covc <- coverage(frags_c_gr)/length(frags_c_gr)*1000000
-  rtracklayer::export.bw(covc, con = paste0("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/invitro_pearson_bigwig/Control_",day, ".bw"))
+  rtracklayer::export.bw(covc, con = paste0("../../../pearson_large_data_files/output/invitro_erythroid/invitro_pearson_bigwig/Control_",day, ".bw"))
   
   frags_p_gr <- makeGRangesFromDataFrame(rbind(frags1[frags1$V4 %in% pearson_cells1,], frags2[frags2$V4 %in% pearson_cells2,]), 
                                          seqnames.field = "V1", start.field = "V2", end.field = "V3")
   covp <- coverage(frags_p_gr)/length(frags_p_gr)*1000000
-  rtracklayer::export.bw(covp, con = paste0("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/invitro_pearson_bigwig/Pearson_",day, ".bw"))
+  rtracklayer::export.bw(covp, con = paste0("../../../pearson_large_data_files/output/invitro_erythroid/invitro_pearson_bigwig//Pearson_",day, ".bw"))
 }
 
 process_frags("D12_1", "D12_2", d12_1_frags, d12_2_frags, "Day12")

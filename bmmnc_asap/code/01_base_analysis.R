@@ -18,11 +18,11 @@ import_deletion <- function(library_n){
 
 del_df <- rbind(import_deletion(1), import_deletion(2), import_deletion(3), import_deletion(4), import_deletion(5))
 rownames(del_df) <- del_df$cell_id
-counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/bmmnc/asap_aggr/asap_aggr_nods_filtered_peak_bc_matrix.h5")
 
 # Slower but convenient for the row parsing
 metadata <- read.csv(
-  file = "../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_singlecell.csv.gz",
+  file = "../../../pearson_large_data_files/input/bmmnc/asap_aggr/asap_aggr_nods_singlecell.csv",
   header = TRUE,
   row.names = 1
 )[,c(1:10,12)]
@@ -39,20 +39,16 @@ protein_QC <- data.frame(
   pass_mito_qc = colnames(protein_mat) %in% del_df$cell_id
 ) %>% filter(pass_mito_qc)
 
-# Set some QC thresholds
-ggplot(protein_QC, aes(x = log10(total_count), y =control_count)) +
-  geom_point()
-
-ggplot(metadata %>% filter(cell_id != "None"), aes(x = log10(passed_filters), y = (peak_region_fragments)/passed_filters *100)) +
-  geom_point()
-
+# Set QC thresholds
 protein_qc_barcodes <- protein_QC$barcode[protein_QC$total_count > 150 & protein_QC$control_count < 10]
 mito_qc_barcodes <- protein_QC$barcode[protein_QC$total_count > 150 & protein_QC$control_count < 10]
-atac_qc_barcodes <- metadata %>% filter(cell_id != "None") %>% filter(passed_filters > 10^3 & (peak_region_fragments/passed_filters) > 0.25) %>% rownames()
+atac_qc_barcodes <- metadata %>% filter(passed_filters > 10^3 & (peak_region_fragments/passed_filters) > 0.25) %>% rownames()
 
 # Derive consensus barcodes based on QC of all 3 modalities 
 consensus_barcodes <- intersect(protein_qc_barcodes, intersect(mito_qc_barcodes, atac_qc_barcodes))
 length(consensus_barcodes) # over 20k which is nice  
+
+# Now do analyses
 counts_filt <- counts[,consensus_barcodes]
 protein_mat_filt <- protein_mat[,consensus_barcodes]
 del_df_filt <- del_df[consensus_barcodes,]
@@ -71,9 +67,9 @@ CA <- CreateChromatinAssay(
   counts = counts_filt,
   sep = c(":", "-"),
   genome = 'hg19',
-  fragments = '../../../pearson_large_data_files/input/bonemarrow_mnc_asap/ASAP_BM_Pearson_aggr_fragments.tsv.gz',
+  fragments = '../../../pearson_large_data_files/input/bmmnc/asap_aggr/asap_aggr_nods_fragments.tsv.gz',
   min.cells = 0,
-  min.features = 0
+  min.features = 0, validate.fragments = TRUE
 )
 
 
@@ -141,7 +137,7 @@ pearson_asap <- NormalizeData(
   scale.factor = median(pearson_asap$nCount_ACTIVITY)
 )
 
-saveRDS(pearson_asap, file = "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+saveRDS(pearson_asap, file = "../../../pearson_large_data_files/output/bone_marrow/pearson_asap_master_object.rds")
 
 
 

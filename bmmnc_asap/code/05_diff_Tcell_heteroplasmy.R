@@ -6,7 +6,7 @@ library(dplyr)
 library(viridis)
 library(patchwork)
 
-pearson_asap <- readRDS( "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+pearson_asap <- readRDS("../../../pearson_large_data_files/output/bone_marrow/pearson_asap_master_object.rds")
 DimPlot(pearson_asap, label = TRUE)
 pearson_asap$UMAP1 <- pearson_asap@reductions$umap@cell.embeddings[,1]
 pearson_asap$UMAP2 <- pearson_asap@reductions$umap@cell.embeddings[,2]

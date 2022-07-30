@@ -39,21 +39,33 @@ df %>% group_by(gene) %>%
   arrange(desc(SZ)) %>% mutate(rank = 1:n()) -> Rank_summarize_zscore_pbmc
 
 
-p1 <- ggplot(Rank_summarize_zscore_ery, aes(x = rank, y = SZ)) + 
-  geom_point(size = 0.5) + pretty_plot(fontsize = 8) + L_border() +
-  geom_hline(yintercept = 0, linetype = 2) +
-  labs(x = "Association rank", y = "Mean z-score")
-p1
+####################
 
-cowplot::ggsave2(p1, file = "../plots/go_zscore.pdf", width =1.62, height = 2)
+mdf <- merge(Rank_summarize_zscore_pbmc[,c(1,2)], Rank_summarize_zscore_ery[,c(1,2)], by = "gene", all = TRUE) 
+colnames(mdf) <- c("gene", "Zscore_PBMC", "Zscore_ery")
+mdf$Zscore_PBMC <- ifelse(is.na(mdf$Zscore_PBMC), 0, mdf$Zscore_PBMC)
+mdf$Zscore_ery <- ifelse(is.na(mdf$Zscore_ery), 0, mdf$Zscore_ery)
 
-mdf_other <- merge(Rank_summarize_zscore_pbmc, Rank_summarize_zscore_ery, by = "gene") %>%
-  dplyr::filter(MH.x > 10 | MP.x > 10 | MH.y > 10 | MP.y > 10)
 
-mdf_other %>% dplyr::filter(mLogFC.x  < -0.2 & mLogFC.y < -0.2 & (MP.x/MH.x)<1 & (MP.y/MH.y)<1) %>% pull(gene) %>%
-  data.frame() %>% write.table(quote = FALSE, row.names = FALSE)
-mdf_other %>% dplyr::filter(mLogFC.x  > 0.2 & mLogFC.y  > 0.2 & (MP.x/MH.x)>1 & (MP.y/MH.y)>1)  %>% pull(gene) %>%
-  data.frame() %>% write.table(quote = FALSE, row.names = FALSE)
+ggplot(mdf %>% filter(gene %in% oxphos_pathway), aes(x = Zscore_PBMC, y = Zscore_ery)) + 
+  geom_point(size = 0.6) +
+  geom_smooth(method='lm', formula= y~x) +
+  pretty_plot(fontsize = 8) + L_border() +
+  labs(x = "PBMC z-score", y = "Erythroid z-score") -> p1 
+cowplot::ggsave2(p1, file = "../plots/oxphos.pdf", width = 2.1, height = 2.1)
 
-ggplot(mdf_other, aes(x = SZ.x, y = SZ.y)) + 
-  geom_point()
+ggplot(mdf %>% filter(gene %in% c(heme, cholesterol)) %>% mutate(inheme = gene %in% heme), aes(x = Zscore_PBMC, y = Zscore_ery, shape = inheme)) + 
+  geom_point(size = 1) +
+  pretty_plot(fontsize = 8) + L_border() +
+  theme(legend.position = "none") +
+  labs(x = "PBMC z-score", y = "Erythroid z-score") -> p2
+cowplot::ggsave2(p2, file = "../plots/ery.pdf", width = 2.1, height = 2.1)
+
+ggplot(mdf %>% filter(gene %in% c(heme, cholesterol)) %>% mutate(inheme = gene %in% heme), aes(x = Zscore_PBMC, y = Zscore_ery)) + 
+  geom_point(size = 0.6) +
+  geom_smooth(method='lm', formula= y~x) +
+  
+  pretty_plot(fontsize = 8) + L_border() +
+  theme(legend.position = "none") +
+  labs(x = "PBMC z-score", y = "Erythroid z-score") -> p21
+cowplot::ggsave2(p21, file = "../plots/ery2.pdf", width = 2.1, height = 2.1)

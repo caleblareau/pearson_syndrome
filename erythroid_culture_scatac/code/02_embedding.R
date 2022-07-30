@@ -5,9 +5,9 @@ library(Seurat)
 library(BuenColors)
 
 # Import scATAC
-counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/invitro_ery_scatac/aggr/Pearson_Invitro_D6D12atac_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/erythroid-culture/atac/Pearson_Invitro_D6D12atac_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
-  file = "../../../pearson_large_data_files/input/invitro_ery_scatac/aggr/Pearson_Invitro_D6D12atac_singlecell.csv",
+  file = "../../../pearson_large_data_files/input/erythroid-culture/atac//Pearson_Invitro_D6D12atac_singlecell.csv",
   header = TRUE,
   row.names = 1
 )

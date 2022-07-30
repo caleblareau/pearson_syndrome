@@ -16,7 +16,7 @@ extractme <- function(donor, letter, SE){
 
 # Given a summarized experiment from mgatk, compute the essentials for ultimately determining contamination
 process_SE_counts <- function(lib){
-  SE <- readRDS(paste0("../../../pearson_large_data_files/input/invitro_ery_scatac//mgatk_files/Pearson_Healthy_",lib,"_v12-mtMask_mgatk.rds"))
+  SE <- readRDS(paste0("../../../pearson_large_data_files/input/erythroid-culture/mgatk/Pearson_Healthy_",lib,"_v12-mtMask_mgatk.rds"))
   df3 <- data.frame(
     barcode = colnames(SE),
     control = extractme("Control", "A", SE) +  extractme("Control", "C", SE) +  extractme("Control", "G", SE) +  extractme("Control", "T", SE),

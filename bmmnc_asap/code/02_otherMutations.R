@@ -6,7 +6,7 @@ if(FALSE){
   source("../../global_functions/variant_calling.R")
   
   import_channel <- function(channeln){
-    se <- readRDS(paste0("../../../pearson_large_data_files/input/bonemarrow_mnc_asap/mgatk_files/Pearson-ASAP-BMMNC-c",channeln,"_mgatk.rds"))
+    se <- readRDS(paste0("../../../pearson_large_data_files/input/bmmnc/mgatk//Pearson-ASAP-BMMNC-c",channeln,"_mgatk.rds"))
     colnames(se) <- gsub("-1", paste0("-", as.character(channeln)), colnames(se))
     se
   }

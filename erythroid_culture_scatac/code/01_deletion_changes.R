@@ -1,7 +1,7 @@
 library(data.table)
 library(dplyr)
 library(BuenColors)
-
+library(viridis)
 # There are variable cutoffs used to assign the MDS / not
 # based on how the CONICs caller emits the probabilities of the
 # mixture components; see histograms for justification
@@ -85,7 +85,7 @@ p1 <- ggplot(all_df, aes(x = heteroplasmy, color = day)) +
   scale_color_manual(values = c("purple3", "dodgerblue2", "orange2", "firebrick"))
 p1
 
-cowplot::ggsave2(p1, file = "../plots/heteroplasmy_ecdf.pdf", height = 1.2, width = 2)
+#cowplot::ggsave2(p1, file = "../plots/heteroplasmy_ecdf.pdf", height = 1.2, width = 2)
 
 all_df <- all_df %>% mutate(nonzerohet=heteroplasmy > 0)
 all_df$het_MDS <- paste0(all_df$nonzerohet, "_", all_df$MDS)
@@ -111,8 +111,8 @@ all_df %>% group_by(day,MDS) %>% summarize(count = n()) %>%
   pretty_plot(fontsize = 7) + L_border() + scale_y_continuous(expand = c(0,0)) +
   scale_fill_manual(values = alpha(c("dodgerblue3", "firebrick"), 0.5)) -> p2
 
-cowplot::ggsave2(cowplot::plot_grid(p1, p2, nrow = 1), 
-                 file = "../plots/bargraphs_mds_nonzerohet.pdf", width = 4.5, height = 1.1)
+#cowplot::ggsave2(cowplot::plot_grid(p1, p2, nrow = 1), 
+#                 file = "../plots/bargraphs_mds_nonzerohet.pdf", width = 4.5, height = 1.1)
 
 # Day 6 -> 12 fisher test mds
 fisher.test(matrix(c(c(681,2248), c(534,1564)), 2, 2))
