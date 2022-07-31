@@ -90,10 +90,17 @@ pbmc2 <- RunSVD(
 
 # Commands for a 2D embedding and graph-based clustering
 set.seed(2022)
-pbmc2 <- FindNeighbors(pbmc2, reduction = "lsi", dims = 2:20, graph.name = "LSI")
-pbmc2 <- RunUMAP(object = pbmc2, reduction = 'lsi', dims = 2:20)
-pbmc2 <- FindClusters(object = pbmc2, resolution = 1.2, algorithm = 3, graph.name = "LSI")
-DimPlot(object = pbmc2,  label = TRUE, reduction = "umap")
+pbmc2 <- FindNeighbors(pbmc2, reduction = "lsi", dims = 2:30, graph.name = "LSI")
+pbmc2 <- RunUMAP(object = pbmc2, reduction = 'lsi', dims = 2:30)
+pbmc2 <- FindClusters(object = pbmc2, resolution = 0.5, algorithm = 3, graph.name = "LSI")
+DimPlot(object = pbmc2,  label = TRUE, reduction = "umap") +
+  scale_color_manual(values = jdb_palette("corona")) 
+
+ggplot(pbmc2@meta.data, aes(x = heteroplasmy, color = seurat_clusters)) +
+  stat_ecdf() +
+  scale_color_manual(values = jdb_palette("corona")) +
+  pretty_plot(fontsize = 7) + L_border() + labs(x = "% Heteroplasmy", y = "Cumulative fraction", color = "") +
+  scale_x_continuous(limits = c(0, 100))
 
 # add the gene information to the object
 DefaultAssay(pbmc2) <- "peaks"
@@ -111,10 +118,7 @@ pbmc2 <- NormalizeData(
 )
 
 DefaultAssay(pbmc2) <- "RNA"
-FeaturePlot(pbmc2, features = c("LEF1", "CD8B", "CD4", "TIGIT","IKZF2", "CCL5", "TCF4",
-                                "ZEB2", "heteroplasmy"), reduction = "umap", max.cutoff = "q99",
+FeaturePlot(pbmc2, features = c("LEF1", "CD8B", "CD4", "CD8A","CXCL13", "CD86", "heteroplasmy"), reduction = "umap", max.cutoff = "q99",
             sort.cell = TRUE) &
   scale_color_viridis()
-saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/Tcell_scATAC_culture-day21.rds")
-
-FindMarkers(pbmc2, "3", "6")
+#saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/invitro_tcell/Tcell_scATAC_culture-day21.rds")

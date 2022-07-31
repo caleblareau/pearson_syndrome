@@ -54,12 +54,21 @@ table(substr(combined_vars,nchar(combined_vars)-2, nchar(combined_vars) )%in% tr
 
 afaf <- data.frame(
   combined_vars,
-  pbmc_af = data.frame(rowData(pbmc))[combined_vars,"mean"],
+  pbmc_freq = data.frame(rowData(pbmc))[combined_vars,"mean"],
   day14_af = data.frame(rowData(day14))[combined_vars,"mean"],
   day21_af = data.frame(rowData(day21))[combined_vars,"mean"]
 )
 write.table(afaf, file = "../output/afs_called_variants.tsv",
             sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+mdf <- reshape2::melt(afaf, id.vars = c("combined_vars"))
+
+p1 <- ggplot(mdf, aes(x = variable, y = value*100, group = combined_vars)) +
+  geom_point(size = 0.75) + geom_line() + pretty_plot(fontsize = 8) + L_border() +
+  labs(x = "", y = "% Heteroplasmy")
+cowplot::ggsave2(p1, file = "../plots/af_evolution.pdf", width  = 1.8, height = 1.8)
+
+
 library(BuenColors)
 p1 <- ggplot(afaf, aes(x = pbmc_af*100, y = day14_af*100)) +
   geom_point() + geom_abline(intercept = 0, slope = 1, linetype = 2) +

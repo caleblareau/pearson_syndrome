@@ -11,27 +11,25 @@ library(viridis)
 set.seed(1)
 
 # Import ATAC data
-metadata <- fread("../../../pearson_large_data_files/input/pbmcs_scatac/fragments/P3H2_singlecell.csv") %>%
-  filter(cell_id != "None")
+metadata <- fread("../data/patient_singlecell/PBMC_PT3_v12-mtMask.singlecell.csv.gz") %>%
+  dplyr::filter(cell_id != "None")
 metadata <- data.frame(metadata)
 rownames(metadata) <- metadata[[1]]
-mat <- Read10X_h5("../../../pearson_large_data_files/input/pbmcs_scatac/aggrs/P3H2_filtered_peak_bc_matrix.h5")
-fragments_file <- "../../../pearson_large_data_files/input/pbmcs_scatac/aggrs/P3H2_fragments.tsv.gz"
+mat <- Read10X_h5("../data/peaks_by_cells/PT3_filtered_peak_bc_matrix.h5")
+fragments_file <- "../../../pearson_large_data_files/input/pbmcs_scatac/fragments/hg19/PT3_fragments.tsv.gz"
 
 # Process meta data
-metadata <- metadata[grepl("-3", rownames(metadata)),]
-mat <- mat[,grepl("-3", colnames(mat))]
 dim(mat)
 dim(metadata)
 
 df_PT3 <- fread("../data/deletion_heteroplasmy/del_PBMC_PT3.deletion_heteroplasmy.tsv") %>%
-  dplyr::filter(deletion == "del10381-15407") %>% mutate(barcode = gsub(pattern = "-1", replacement = "-3", cell_id)) %>%
-  dplyr::filter(reads_all>=10) %>% 
-  mutate(scale_heteroplasmy = scale(heteroplasmy))
+  dplyr::filter(deletion == "del10381-15407") %>%
+  dplyr::filter(reads_all>=10) 
 
-df_MDS <- fread("../../pt3_chr7_del_scatac/output/Pearson-PBMC.chr7DelQC.tsv")
-metadata_full <- merge(merge(df_PT3, metadata, by= "barcode"), df_MDS, by.x = "barcode", by.y  = "V4")
-rownames(metadata_full) <- metadata_full$barcode
+metadata_full <- data.frame(merge(df_PT3, metadata, by.x = "cell_id", by.y = "barcode"))
+consensus_bc <- intersect(metadata_full$cell_id, colnames(mat))
+metadata_full <- metadata_full %>% dplyr::filter(cell_id %in% consensus_bc)
+rownames(metadata_full) <- metadata_full$cell_id
 
 # Create Seurat object
 mat <- mat[,rownames(metadata_full)]
@@ -71,15 +69,14 @@ pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:20)
 pbmc <- FindNeighbors(object = pbmc, reduction = 'lsi', dims = 2:20)
 
 DefaultAssay(pbmc) <- "peaks"
-pbmc <- FindClusters(object = pbmc, resolution = 0.8 )
+pbmc <- FindClusters(object = pbmc, resolution = 0.7 )
 
 DimPlot(object = pbmc, label = TRUE) 
+
 FeaturePlot(object = pbmc, "heteroplasmy") +
   scale_color_viridis()
 
-FeaturePlot(object = pbmc, "X7del") +
-  scale_color_viridis()
-
+# Annotate clusters
 gene.activities <- GeneActivity(pbmc)
 pbmc[['ACTIVITY']] <- CreateAssayObject(counts = gene.activities)
 pbmc <- NormalizeData(
@@ -94,10 +91,10 @@ FeaturePlot(object = pbmc, c( "CD4", "CD8A", "MS4A1", "CXCL14",
                               "CD3E", "LEF1","TREM1", "FCGR3A", 
                               "CCL5", "CCR7", "CD3D", "EOMES", "NKG7", 
                               "TNFRSF17"),
-            max.cutoff = "q95")
+            max.cutoff = "q95", sort.cell = TRUE)
 
 DefaultAssay(pbmc) <- "ACTIVITY"
-FindMarkers(pbmc, ident.1 = "14") %>% head(20)
+#FindMarkers(pbmc, ident.1 = "14") %>% head(20)
 
 vec <- c("0" = "CD4_Naive",
          "1" = "CD8_Naive",
@@ -115,21 +112,24 @@ vec <- c("0" = "CD4_Naive",
          "13" = "Monocytes_CD16",
          "14" = "pDCs",
          "15" = "Bcell_plasma")
+
 pbmc$cl_anno <- vec[as.character(pbmc$seurat_clusters)]
-FindMarkers(pbmc, ident.1 = "6", ident.2 = "11") %>% head(20)
-FindMarkers(pbmc, ident.1 = "3") %>% head(50)
+#FindMarkers(pbmc, ident.1 = "6", ident.2 = "11") %>% head(20)
+#FindMarkers(pbmc, ident.1 = "3") %>% head(50)
+
+
 set.seed(7)
 p1 <- DimPlot(pbmc, group.by = "cl_anno") +
   scale_color_manual(values = sample(jdb_palette("corona", 14))) +
   theme_void()
-cowplot::ggsave2(p1, file = "../plots/PT3_PBMC_clusters.pdf", width = 5, height = 3.5)
+cowplot::ggsave2(p1, file = "../plots/PT3_PBMC_clusters-revision.pdf", width = 5, height = 3.5)
 
 p2 <- FeaturePlot(object = pbmc, "heteroplasmy") +
   scale_color_viridis() + theme_void() + 
   theme(legend.position = "none")
 cowplot::ggsave2(p2, file = "../plots/PT3_PBMC_heteroplasmy.pdf", width = 3.5, height = 3.5)
 
-saveRDS(pbmc, file = "../../../pearson_large_data_files/output/pearson_pbmc_pt3.rds")
+
 
 ### Remake
 pbmc2 <- readRDS("../../../pearson_large_data_files/output/PBMC_scATAC_3P1H-15FEB2021.rds")

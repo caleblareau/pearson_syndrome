@@ -1,4 +1,6 @@
+library(Seurat)
 
+pbmc2 <- readRDS("../../../pearson_large_data_files/output/invitro_tcell/Tcell_scATAC_culture.rds")
 
 
 DefaultAssay(pbmc2) < "peaks"

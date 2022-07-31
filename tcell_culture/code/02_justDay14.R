@@ -188,6 +188,12 @@ p1 <- FeaturePlot(object = pbmc2, features = c("CD45RA"),
   theme_void() + theme(legend.position = "none") + ggtitle("")
 cowplot::ggsave2(p1, file = "../plots/cd45ra.png", width = 3, height = 3, dpi = 400)
 
+p1 <- FeaturePlot(object = pbmc2, features = c("IL2RA"),
+                  sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") + scale_color_viridis() +
+  theme_void() + theme(legend.position = "none") + ggtitle("")
+cowplot::ggsave2(p1, file = "../plots/IL2RA.png", width = 3, height = 3, dpi = 400)
+
+
 p1 <- DimPlot(object = pbmc2, group.by = "caleb_cluster",
                   reduction = "umap") + scale_color_manual(values = jdb_palette("corona"))+
   theme_void() + theme(legend.position = "none") + ggtitle("")
@@ -224,12 +230,12 @@ pbmc2 <- NormalizeData(
 
 DefaultAssay(pbmc2) <- "RNA"
 FeaturePlot(pbmc2, features = c("LEF1", "CD8A", "CD4"), reduction = "umap")
-saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/Tcell_scATAC_culture.rds")
+saveRDS(pbmc2, file = "../../../pearson_large_data_files/output/invitro_tcell/Tcell_scATAC_culture.rds")
 
 DefaultAssay(pbmc2) <- "ADT"
 Idents(object = pbmc2) <- pbmc2$caleb_cluster
 fam <- FindAllMarkers(pbmc2, only.pos = TRUE)
 write.table(fam[,c("cluster", "gene")], row.names = FALSE, quote = FALSE)
 
-FeaturePlot(object = pbmc2, features = unique(rownames(fam)),
+FeaturePlot(object = pbmc2, features = c("CCR4"),
              sort.cell = TRUE, max.cutoff = "q95", reduction = "umap") & scale_color_viridis() 

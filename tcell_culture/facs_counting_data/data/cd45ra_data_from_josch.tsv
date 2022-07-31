@@ -1,0 +1,13 @@
+Day	donor	Cell_type	CD4_CD45RAhi	CD8_CD45RAhi
+-2	adult	PBMC	43.7	52.9
+0	adult	PBMC	11.8	24.7
+5	adult	PBMC	0.12	1.5
+10	adult	PBMC	0.14	6.8
+-2	pediatric	BMMNC	68	86.9
+0	pediatric	BMMNC	27.2	53.6
+5	pediatric	BMMNC	0.1	0.68
+10	pediatric	BMMNC	0.13	15.6
+-2	pediatric	PBMC	68.4	87.4
+0	pediatric	PBMC	28.7	56.1
+5	pediatric	PBMC	0.034	2.05
+10	pediatric	PBMC	0.19	27.8

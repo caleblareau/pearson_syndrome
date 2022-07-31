@@ -13,6 +13,11 @@ DefaultAssay(pearson_asap) <- "ADT"
 cd4adt <- FindMarkers(pearson_asap, "5", "0", logfc.threshold = 0)
 cd8adt <- FindMarkers(pearson_asap, "6", "2", logfc.threshold = 0)
 mdf <- merge(cd4adt, cd8adt, by = "row.names")
+
+mdf %>% filter(p_val_adj.x < 0.01 & p_val_adj.y < 0.01) %>% 
+  filter(avg_log2FC.x > 0 & avg_log2FC.y > 0) %>%
+  arrange(p_val_adj.x)
+
 p1 <- ggplot(mdf, aes(x = avg_log2FC.x, y = avg_log2FC.y, label = Row.names)) +
   geom_text(size = 2) + pretty_plot(fontsize = 7) + L_border() +
   labs(x = "log2FC CD4 RTE / Other Naive", y= "log2FC CD8 RTE / Other Naive")
