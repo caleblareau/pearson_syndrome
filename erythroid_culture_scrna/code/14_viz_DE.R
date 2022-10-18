@@ -4,6 +4,7 @@ library(BuenColors)
 # Gene sets
 heme <- c("ALAD","COX10","CPOX","EARS2","EPRS","FECH","HMBS","PPOX","QARS","UROD")
 cholesterol <- c("FDFT1","FDPS","GGPS1","HMGCR","HMGCS1","IDI2","LSS","MVD","MVK","PMVK","SQLE")
+serine_glycine <- c("PHGDH", "PSAT1", "PSPH", "SHMT2")
 
 # Get scores
 oxphos_pathway <- c("SNORD138","MIR4691","COX17","MIR7113","ATP5PD","ATP5MG","UQCR11","COX4I1",
@@ -45,7 +46,8 @@ mdf <- merge(Rank_summarize_zscore_pbmc[,c(1,2)], Rank_summarize_zscore_ery[,c(1
 colnames(mdf) <- c("gene", "Zscore_PBMC", "Zscore_ery")
 mdf$Zscore_PBMC <- ifelse(is.na(mdf$Zscore_PBMC), 0, mdf$Zscore_PBMC)
 mdf$Zscore_ery <- ifelse(is.na(mdf$Zscore_ery), 0, mdf$Zscore_ery)
-
+cor(data.matrix((mdf %>% filter(gene %in% oxphos_pathway)))[,-1])
+cor(data.matrix((mdf %>% filter(gene %in% c(heme, cholesterol, serine_glycine))))[,-1])
 
 ggplot(mdf %>% filter(gene %in% oxphos_pathway), aes(x = Zscore_PBMC, y = Zscore_ery)) + 
   geom_point(size = 0.6) +
@@ -54,18 +56,23 @@ ggplot(mdf %>% filter(gene %in% oxphos_pathway), aes(x = Zscore_PBMC, y = Zscore
   labs(x = "PBMC z-score", y = "Erythroid z-score") -> p1 
 cowplot::ggsave2(p1, file = "../plots/oxphos.pdf", width = 2.1, height = 2.1)
 
-ggplot(mdf %>% filter(gene %in% c(heme, cholesterol)) %>% mutate(inheme = gene %in% heme), aes(x = Zscore_PBMC, y = Zscore_ery, shape = inheme)) + 
-  geom_point(size = 1) +
+ggplot(mdf %>% filter(gene %in% c(heme, cholesterol,serine_glycine)) %>%
+         mutate(inheme = (gene %in% heme)*2 + (gene %in% serine_glycine)*1),
+                aes(x = Zscore_PBMC, y = Zscore_ery, shape = as.character(inheme))) +   geom_point(size = 1) +
   pretty_plot(fontsize = 8) + L_border() +
   theme(legend.position = "none") +
   labs(x = "PBMC z-score", y = "Erythroid z-score") -> p2
 cowplot::ggsave2(p2, file = "../plots/ery.pdf", width = 2.1, height = 2.1)
 
-ggplot(mdf %>% filter(gene %in% c(heme, cholesterol)) %>% mutate(inheme = gene %in% heme), aes(x = Zscore_PBMC, y = Zscore_ery)) + 
-  geom_point(size = 0.6) +
-  geom_smooth(method='lm', formula= y~x) +
-  
-  pretty_plot(fontsize = 8) + L_border() +
-  theme(legend.position = "none") +
-  labs(x = "PBMC z-score", y = "Erythroid z-score") -> p21
-cowplot::ggsave2(p21, file = "../plots/ery2.pdf", width = 2.1, height = 2.1)
+ggplot(mdf %>% filter(gene %in% c(heme, cholesterol,serine_glycine)) %>%
+         mutate(inheme = (gene %in% heme)*2 + (gene %in% serine_glycine)*1),
+                aes(x = Zscore_PBMC, y = Zscore_ery)) + 
+         geom_point(size = 0.6) +
+         geom_smooth(method='lm', formula= y~x) +
+         
+         pretty_plot(fontsize = 8) + L_border() +
+         theme(legend.position = "none") +
+         labs(x = "PBMC z-score", y = "Erythroid z-score") -> p21
+       cowplot::ggsave2(p21, file = "../plots/ery2.pdf", width = 2.1, height = 2.1)
+       
+       

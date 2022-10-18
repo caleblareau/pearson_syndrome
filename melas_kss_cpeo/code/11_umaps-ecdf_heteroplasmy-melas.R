@@ -17,17 +17,21 @@ dfp9 <- make_combined_df("P9")
 dfp30 <- make_combined_df("P30")
 
 
-ggplot(dfp21 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
-  geom_point() + scale_color_gradientn(colors = c("lightgrey", "firebrick"))  + pretty_plot() +
-  theme_void() + theme(legend.position = "bottom") +labs(color = "")
+plot21 <- ggplot(dfp21 %>% shuf(), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
+  geom_point(size = 1) + scale_color_viridis()  +
+  theme_void() + theme(legend.position = "none")
 
-ggplot(dfp9 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
-  geom_point() + scale_color_gradientn(colors = c("lightgrey", "firebrick"))  + pretty_plot() +
-  theme_void() + theme(legend.position = "bottom") +labs(color = "")
+plot9 <- ggplot(dfp9 %>% shuf(), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
+  geom_point(size = 1) + scale_color_viridis()  +
+  theme_void() + theme(legend.position = "none")
 
-ggplot(dfp30 %>% arrange((heteroplasmy)), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
-  geom_point() + scale_color_gradientn(colors = c("lightgrey", "firebrick"))  + pretty_plot() +
-  theme_void() + theme(legend.position = "bottom") +labs(color = "")
+plot30 <- ggplot(dfp30 %>% shuf(), aes(x = refUMAP_1, y = refUMAP_2, color = heteroplasmy)) +
+  geom_point(size = 1) + scale_color_viridis()  +
+  theme_void() + theme(legend.position = "none")
+
+cowplot::ggsave2(plot21, file = "../plots/plot21_heteroplasmy.png", width = 5, height = 5.1, dpi = 500)
+cowplot::ggsave2(plot9, file = "../plots/plot9_heteroplasmy.png", width = 5, height = 5.1, dpi = 500)
+cowplot::ggsave2(plot30, file = "../plots/plot30_heteroplasmy.png", width = 5, height = 5.1, dpi = 500)
 
 dfp21 %>% group_by(predicted.celltype.l2) %>%
   summarize(count = n(), pct_het = mean(heteroplasmy < 0.01)*100) %>%

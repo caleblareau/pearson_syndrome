@@ -3,6 +3,8 @@ library(dplyr)
 library(ggbeeswarm)
 library(BuenColors)
 library(viridis)
+library(ggrastr)
+library(Nebulosa)
 load("../output/CD34_umap_embedding_granja_proj3.rda")
 
 mds <- fread("../../pt3_chr7_del_scatac/output/Pearson-CD34-PT3.chr7DelQC.tsv")
@@ -70,6 +72,39 @@ p3 <- ggplot(projection_df_control[dim(projection_df_control)[1]:1,], aes(x= uma
   scale_color_manual(values = c("Healthy" = "dodgerblue3", "base" = "lightgrey"))
 
 if(FALSE){
+  pdf_base <- projection_df_pearson_pt_merge %>% filter(celltype == "base")
+  pdf_base$MDS_1 <- NA; pdf_base$noMDS_1 <- NA; pdf_base$MDS_weight <- NA; pdf_base$noMDS_weight <- NA;
+  
+  pdf_others <- projection_df_pearson_pt_merge %>% filter(celltype == "Pearson")
+  pdf_others$MDS_1 <- as.numeric(pdf_others$MDS == "TRUE")
+  pdf_others$MDS_weight <- Nebulosa:::calculate_density(pdf_others$MDS_1, cbind(pdf_others$umap1, pdf_others$umap2), method = "wkde")
+  
+  pdf_others$noMDS_1 <- as.numeric(pdf_others$MDS == "FALSE")
+  pdf_others$noMDS_weight <- Nebulosa:::calculate_density(pdf_others$noMDS_1, cbind(pdf_others$umap1, pdf_others$umap2), method = "wkde")
+  
+  pDens1 <- rbind(pdf_base, pdf_others %>% filter(MDS == "FALSE") %>% arrange((noMDS_weight))) %>%
+    ggplot(aes(x= umap1, y = umap2, color = noMDS_weight)) +
+    geom_point(size = 0.5) +
+    labs(x = "UMAP1", y= "UMAP2", color = "noMDS_weight") +
+    pretty_plot(fontsize = 7) + L_border() + 
+    scale_color_viridis(na.value = "lightgrey") +
+    theme(legend.position = "none")
+  
+  pDens2 <- rbind(pdf_base, pdf_others %>% filter(MDS == "TRUE") %>% arrange((MDS_weight))) %>%
+    ggplot(aes(x= umap1, y = umap2, color = MDS_weight)) +
+    geom_point(size = 0.5) + 
+    labs(x = "UMAP1", y= "UMAP2", color = "MDS_weight") +
+    pretty_plot(fontsize = 7) + L_border() + 
+    scale_color_viridis(na.value="lightgrey") +
+    theme(legend.position = "none")
+  
+  library(patchwork)
+  cowplot:::ggsave2(cowplot::plot_grid(pDens1, pDens2, nrow = 1),
+                    filename = "../plots/Pearson_viz_densities.pdf", width = 3.6, height = 1.8)
+  
+}
+
+if(FALSE){
   cowplot:::ggsave2(cowplot::plot_grid(p1, p2, p3,  nrow = 1),
                     filename = "../plots/Pearson_C1_initial_projection_CD34_viz.pdf", width = 5.4, height = 1.8)
 }
@@ -89,8 +124,6 @@ pHet <- ggplot(projection_df_pearson_pt_merge[dim(projection_df_pearson_pt_merge
   scale_color_viridis(na.value="lightgrey", end = max(projection_df_pearson_pt_merge$heteroplasmy, na.rm = TRUE)/100)
 cowplot:::ggsave2(cowplot::plot_grid(pMDS, pHet, nrow = 1),
                   filename = "../plots/Pearson_MDS_projection_CD34_twoPanel.pdf", width = 3.6, height = 1.8)
-
-
 
 pPearsonmanual <- ggplot(projection_df_pearson_pt[dim(projection_df_pearson_pt)[1]:1,], aes(x= umap1, y = umap2, color = celltype, label = celltype)) +
   geom_point(size = 0.2) +
@@ -140,8 +173,8 @@ healthycontrol_assignments <- colnames(d)[max.col(-d[2075:dim(d)[1],1:2074])]
 # MDS
 data.frame(
   healthy = round(table(healthycontrol_assignments)/length(healthycontrol_assignments)*100,2),
-  MDS = round(table(pearson_assignments[projection_df_pearson_pt_merge$MDS == "TRUE"])/length(pearson_assignments[projection_df_pearson_pt_merge$MDS == "TRUE"])*100,2),
-  WT = round(table(pearson_assignments[projection_df_pearson_pt_merge$MDS == "FALSE"])/length(pearson_assignments[projection_df_pearson_pt_merge$MDS == "FALSE"])*100,2)
+  MDS = round(table(pearson_assignments[projection_df_pearson_only$MDS == "TRUE"])/length(pearson_assignments[projection_df_pearson_only$MDS == "TRUE"])*100,2),
+  WT = round(table(pearson_assignments[projection_df_pearson_only$MDS == "FALSE"])/length(pearson_assignments[projection_df_pearson_only$MDS == "FALSE"])*100,2)
 )[,c(1,2,4,6)] -> quant_df
 colnames(quant_df) <- c("assign", "healthy", "MDS", "WT")
 quant_dfp <- quant_df %>% reshape2::melt(id.vars = "assign")
@@ -150,16 +183,49 @@ pbar <- ggplot(quant_dfp, aes(x = variable, y = value, fill = assign)) +
   scale_y_continuous(expand = c(0,0)) +
   scale_fill_manual(values = ejc_color_maps) +
   coord_flip() + pretty_plot(fontsize = 7) + L_border() + theme(legend.position = "none") + labs(x = "", y = "% of cells")
+pbar
 
 cowplot:::ggsave2(pbar,
                   filename = "../plots/Pearson_healthy_bars.pdf", width = 1.8, height = 1.4)
+
+# Slightly more complicated 
+projection_df_pearson_only$celltype <- pearson_assignments
+
+boo1 <- projection_df_pearson_only$MDS == "TRUE" &  projection_df_pearson_only$heteroplasmy < 5
+boo2 <- projection_df_pearson_only$MDS == "FALSE" & projection_df_pearson_only$heteroplasmy < 5
+boo3 <- projection_df_pearson_only$MDS == "TRUE" & projection_df_pearson_only$heteroplasmy > 20
+boo4 <- projection_df_pearson_only$MDS == "FALSE" & projection_df_pearson_only$heteroplasmy > 20
+sum(boo1)
+sum(boo2)
+sum(boo3)
+sum(boo4)
+ct <- unique(healthycontrol_assignments)
+data.frame(
+  healthy = round(table(healthycontrol_assignments)/length(healthycontrol_assignments)*100,2)[ct],
+  MDS_noHet = round(table(pearson_assignments[boo1])/length(pearson_assignments[boo1])*100,2)[ct],
+  WT_noHet = round(table(pearson_assignments[boo2])/length(pearson_assignments[boo2])*100,2)[ct],
+  MDS_het = round(table(pearson_assignments[boo3])/length(pearson_assignments[boo3])*100,2)[ct],
+  WT_het = round(table(pearson_assignments[boo4])/length(pearson_assignments[boo4])*100,2)[ct]
+)[c(1,2,4,6,8,10)] -> quant_df_new
+quant_df_new[is.na(quant_df_new)] <- 0
+colnames(quant_df_new) <- c("assign", "healthy", "MDS_noHet", "WT_noHet", "MDS_het", "WT_het")
+quant_dfp2 <- quant_df_new %>% reshape2::melt(id.vars = "assign")
+pbar2 <- ggplot(quant_dfp2, aes(x = variable, y = value, fill = assign)) + 
+  geom_bar(stat = "identity", color = "black", width = 0.8) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_fill_manual(values = ejc_color_maps) +
+  coord_flip() + pretty_plot(fontsize = 7) + L_border() + theme(legend.position = "none") + labs(x = "", y = "% of cells")
+pbar2
+
+
+head(quant_df_new)
 
 # Do a per-closest cell heteroplasmy
 projection_df_pearson_only$assignment <- pearson_assignments
 
 at_least_50 <- c("CLP", "LMPP", "CMP", "GMP", "MEP", "pDC")
 pBoxhet <- ggplot(projection_df_pearson_only %>%
-         dplyr::filter(assignment %in% at_least_50), aes(x = assignment, y = heteroplasmy, color = MDS)) +
+                    dplyr::filter(assignment %in% at_least_50), aes(x = assignment, y = heteroplasmy, color = MDS)) +
   geom_boxplot(outlier.shape = NA) +
   labs(x = "Closet cell assignment", y = '% Heteroplasmy') +
   pretty_plot(fontsize = 7) + L_border() +
@@ -169,4 +235,3 @@ cowplot::ggsave2(pBoxhet, file = "../plots/boxplot_CD34_heteroplasmy.pdf", width
 projection_df_pearson_only %>% dplyr::filter(assignment %in% at_least_50) %>%
   group_by(assignment, MDS) %>% summarize(median(heteroplasmy), count = n())
 
-                                                                       

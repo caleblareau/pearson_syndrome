@@ -7,7 +7,7 @@ library(magrittr)
 library(Matrix)
 library(CONICSmat)
 library(data.table)
-
+library(dplyr)
 set.seed(1)
 
 ddvec <- c("6", "6", "6", "6", "12", "12", "12", "12")
@@ -73,6 +73,7 @@ process_chr7_del<- function(idx){
 
 lapply(1:8, process_chr7_del)
 
+library(data.table)
 both8 <-fread("../output/conics_mat/Conics_8_both_stats.tsv")
 
 ggplot(both8, aes(x = X7del, fill = who)) + 

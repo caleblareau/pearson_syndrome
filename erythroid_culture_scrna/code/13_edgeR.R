@@ -58,10 +58,27 @@ rs <- rowSums(counts)
 cpms <- round(rs/sum(rs) *1000000,1)
 counts <- counts[cpms > 0.1,]
 dim(counts)
+
+meta_df %>% 
+  group_by(assignment, MDS) %>%
+  summarize(count = n())
+
+mds_boo <- (meta_df$assignment == "Healthy") |  (meta_df$MDS)
+not_mds_boo <- (meta_df$assignment == "Healthy") |  !(meta_df$MDS)
 ery_df6 <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D6"],  meta_df$assignment[meta_df$Day == "D6"])
 ery_df12 <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D12"], meta_df$assignment[meta_df$Day == "D12"])
-
 save(ery_df6, ery_df12, file = "../output/Erythroid_Person_edgeR_D6D12-DGE.rda")
 
+# Now stratify by called MDS genes
+mds_boo <- (meta_df$assignment == "Healthy") |  (meta_df$MDS)
+not_mds_boo <- (meta_df$assignment == "Healthy") |  !(meta_df$MDS)
 
+ery_df6_mds <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D6" & mds_boo],  meta_df$assignment[meta_df$Day == "D6" & mds_boo])
+ery_df12_mds <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D12" & mds_boo], meta_df$assignment[meta_df$Day == "D12" & mds_boo])
+
+ery_df6_nomds <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D6" & not_mds_boo],  meta_df$assignment[meta_df$Day == "D6" & not_mds_boo])
+ery_df12_nomds <- run_edgeRQLFDetRate_CL_ery(counts[,meta_df$Day == "D12" & not_mds_boo], meta_df$assignment[meta_df$Day == "D12" & not_mds_boo])
+
+save(ery_df6_mds, ery_df12_mds, ery_df6_nomds, ery_df12_nomds,
+     file = "../output/Erythroid_Person_edgeR_MDSstraify-D6D12-DGE.rda")
 
