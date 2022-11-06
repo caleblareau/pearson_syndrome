@@ -17,6 +17,8 @@ Figure 6 | bmmnc_asap
 Figure 7 | erythroid_culture_scatac,erythroid_culture_scrna
 ```
 
+The single-cell large mitochondrial DNA genotyping workflow is available in the [mgatk-del module, documented here](https://github.com/caleblareau/mgatk/wiki/Large-deletion-calling-and-heteroplasmy-estimation). 
+
 Questions? Raise an issue (preferably) or [email Caleb](mailto:clareau@stanford.edu)
 
 <br><br>
