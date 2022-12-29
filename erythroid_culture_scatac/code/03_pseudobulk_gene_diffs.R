@@ -3,10 +3,10 @@ library(dplyr)
 library(data.table)
 library(GenomicRanges)
 
-ga_d06_1 <- readRDS("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/D6_1_gene_activities.rds")
-ga_d06_2 <- readRDS("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/D6_2_gene_activities.rds")
-ga_d12_1 <- readRDS("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/D12_1_gene_activities.rds")
-ga_d12_2 <- readRDS("../../../pearson_mtscatac_large_data_files/output/invitro_erythroid/D12_2_gene_activities.rds")
+ga_d06_1 <- readRDS("../../../pearson_large_data_files/output/invitro_erythroid//D6_1_gene_activities.rds")
+ga_d06_2 <- readRDS("../../../pearson_large_data_files//output/invitro_erythroid/D6_2_gene_activities.rds")
+ga_d12_1 <- readRDS("../../../pearson_large_data_files/output/invitro_erythroid/D12_1_gene_activities.rds")
+ga_d12_2 <- readRDS("../../../pearson_large_data_files/output/invitro_erythroid/D12_2_gene_activities.rds")
 
 genes <- intersect(rownames(ga_d12_2), intersect(rownames(ga_d12_1), intersect(rownames(ga_d06_1), rownames(ga_d06_2))))
 

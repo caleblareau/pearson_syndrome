@@ -131,11 +131,21 @@ pbmc_pearson_dogma <- RunUMAP(pbmc_pearson_dogma, nn.name = "weighted.nn", reduc
 pbmc_pearson_dogma <- FindClusters(pbmc_pearson_dogma, graph.name = "wsnn", algorithm = 3, resolution = 0.5, verbose = FALSE)
 
 FeaturePlot(pbmc_pearson_dogma,
-            features = c("peaks.weight","RNA.weight", "ADT.weight", "cov_het", "CD8A", "CD4", "CD3", "TCRv72", "TCRvd2"),
+            features = c("peaks.weight","RNA.weight", "ADT.weight", "cov_het", "CD8A", "CD4", "CD20", "CD14", "CD45RA", "TCRv72", "TCRvd2"),
             min.cutoff = "q10", max.cutoff = "q90",
             reduction =  'wnn.3.umap',  pt.size = 0.1,
             by.col = FALSE) &
   scale_color_viridis()
+
+FeaturePlot(pbmc_pearson_dogma,
+            features = c("NCAM1", "CD19", "CD56"),
+            min.cutoff = "q10", max.cutoff = "q90",
+            reduction =  'wnn.3.umap',  pt.size = 0.1,
+            by.col = FALSE) &
+  scale_color_viridis()
+
+
+
 DimPlot(pbmc_pearson_dogma, label = TRUE)
 pO <- DimPlot(pbmc_pearson_dogma, reduction = "wnn.3.umap", label = FALSE) +
   theme_void() + theme(legend.position = "none") + ggtitle("")

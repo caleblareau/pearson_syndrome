@@ -1,9 +1,12 @@
+library(dplyr)
+library(data.table)
 library(BuenColors)
 
-libs <- gsub(".rds", "", gsub("seurat_projected_meta_", "", list.files("../output/", pattern = ".rds")))
+libs <- gsub(".rds", "", gsub("seurat_projected_meta_", "", list.files("../output/", pattern = "^seurat_projected")))
 
 lapply(libs, function(dir_base){
-  readRDS(paste0("../output/seurat_projected_meta_", dir_base, ".rds"))
+  readRDS(paste0("../output/seurat_projected_meta_", dir_base, ".rds")) %>%
+    mutate(id = dir_base)
 })%>% rbindlist() %>% data.frame() -> rdf
 
 rdf$split <- ifelse(rdf$pheno == "Pearson", rdf$name, ifelse(rdf$name %in% c("H1", "H2"), "yadult", "zpediatric"))

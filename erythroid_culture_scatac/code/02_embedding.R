@@ -3,6 +3,7 @@ library(dplyr)
 library(harmony)
 library(Seurat)
 library(BuenColors)
+library(data.table)
 
 # Import scATAC
 counts <- Read10X_h5(filename = "../../../pearson_large_data_files/input/erythroid-culture/atac/Pearson_Invitro_D6D12atac_filtered_peak_bc_matrix.h5")
@@ -36,12 +37,13 @@ assign_df <- rbind(
   import_mgatk_assignments("D12_2", "4", "D12")
 )
 
-metadata2 <- merge(assign_df, metadata, by.x = "barcode", by.y = "row.names")
+metadata2 <- merge(assign_df, metadata, by.x = "barcode", by.y = "row.names") %>%
+  filter(cell_id != "None")
 rownames(metadata2) <- metadata2$barcode
 
 # Verify
 stopifnot(sum(metadata2$cell_id == "None") == 0)
-stopifnot(dim(metadata2)[1] == dim(assign_df)[1])
+#stopifnot(dim(metadata2)[1] == dim(assign_df)[1])
 ery <- metadata2 %>% dplyr::filter(assign == "Pearson" & reads_all > 20)
 
 #good sanity check
@@ -58,12 +60,14 @@ metadata3 <- metadata2 %>% dplyr::filter(assign %in% c("Pearson", "Control"))
 metadata3$MDS <- ifelse(metadata3$assign == "Control", "Control", ifelse(
   metadata3$X7del < 0.15, "del7", "WT"))
 
+metadata4 <- metadata3 %>% filter(assign == "Pearson")
+
 so <- CreateSeuratObject(
-  counts = counts[,metadata3$barcode],
+  counts = counts[,metadata4$barcode],
   assay = 'peaks',
   project = 'ATAC',
   min.cells = 1,
-  meta.data = metadata3
+  meta.data = metadata4
 )
 dim(so)
 rm(counts)
@@ -100,6 +104,8 @@ so_filt <- FindClusters(object = so_filt, verbose = FALSE, algorithm = 3)
 DimPlot(object = so_filt, label = TRUE) + NoLegend()
 DimPlot(object = so_filt, group.by = "day") 
 DimPlot(object = so_filt, group.by = "assign") 
+library(viridis)
+FeaturePlot(so_filt, "heteroplasmy") + scale_color_viridis()
 
 # Get rid of donor/pearson effects if we can with harmony
 so_filt_hm <- RunHarmony(
@@ -115,6 +121,8 @@ so_filt_hm <- RunUMAP(so_filt_hm, dims = 2:30, reduction = 'harmony')
 so_filt_hm <- FindNeighbors(object = so_filt_hm, reduction = 'harmony', dims = 2:30)
 so_filt_hm <- FindClusters(object = so_filt_hm, verbose = FALSE, algorithm = 3, resolution = 0.4)
 DimPlot(so_filt_hm, label = TRUE)
+
+FeaturePlot(so_filt_hm, "heteroplasmy", )
 
 DimPlot(object = so_filt_hm, group.by = "day") 
 DimPlot(object = so_filt_hm, group.by = "assign") 

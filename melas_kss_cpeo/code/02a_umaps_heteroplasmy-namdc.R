@@ -37,6 +37,25 @@ df507 %>% mutate(nzh = heteroplasmy > 0) %>%
   summarize(prop = sum(nzh)/length(nzh)*100, n = sum(nzh)) %>%
   filter(prop > 0) %>% arrange(desc(prop))
 
+df507 %>% filter(heteroplasmy > 0)
+
+
+sdf <- rbind(
+  df550[,c("heteroplasmy", "predicted.celltype.l2")],
+  df671[,c("heteroplasmy", "predicted.celltype.l2")],
+  df507[,c("heteroplasmy", "predicted.celltype.l2")]
+) %>%
+  mutate(nzh = heteroplasmy > 0 ) %>%
+  group_by(nzh, predicted.celltype.l2) %>%
+  summarize(count = n()) %>%
+  reshape2::dcast(predicted.celltype.l2 ~ nzh, id.var = "count", fill = 0)
+colnames(sdf) <- c("celltype", "noHet", "het")
+
+fisher.test(
+  matrix(
+    c(sum(sdf$noHet[c(9,28)]),sum(sdf$noHet),
+      sum(sdf$het[c(9,28)]),sum(sdf$het)
+    ), nrow = 2))
 
 
 df671$heteroplasmy <- ifelse(df671$heteroplasmy  > 50, 50, df671$heteroplasmy )

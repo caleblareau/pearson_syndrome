@@ -72,11 +72,26 @@ lapply(donors, function(d){
     data.frame(donor = d, celltype = ct,
                UQCRB = cpm["UQCRB"], ATP5MG = cpm["ATP5MG"],
                COX4I1 = cpm["COX4I1"], NDUFA4 = cpm["NDUFA4"],
-               
+               FOS = cpm["FOS"], OPA1 = cpm["OPA1"],
+               FOSB = cpm["FOSB"], MFN1 = cpm["MFN1"],
                CXCL14 = cpm["CXCL14"], GPR85 = cpm["GPR85"],
                LINC01641 = cpm["LINC01641"], C12orf54 = cpm["C12orf54"])
   }) %>% rbindlist() 
 })%>% rbindlist() %>% data.frame() -> ddf
+
+
+
+p_a <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(OPA1 + 1))) +
+  geom_tile() +
+  scale_fill_gradientn(colors = jdb_palette("solar_rojos"), limits = c(3,11), oob = scales::squish) +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(limits = rev(levels(as.factor(ddf$celltype))), expand = c(0,0)) +
+  labs(x = "", y = "") + 
+  pretty_plot(fontsize = 8) + L_border() + theme(legend.position = "none") 
+p_a
+cowplot::ggsave2(p_a, file = "../plots/OPA1_expression.pdf", width = 2.5, height = 2.3)
+
+
 
 p_a <- ggplot(ddf, aes(x = donor, y = celltype, fill = log2(COX4I1 + 1))) +
   geom_tile() +

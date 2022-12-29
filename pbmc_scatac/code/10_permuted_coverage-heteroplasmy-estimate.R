@@ -52,4 +52,57 @@ p1 <- ggplot(rdf, aes(x = celltype, y = value, color = variable)) +
   labs( x= "Celltype", y = "Heteroplasmy (%)")
 cowplot::ggsave2(p1, file = "../plots/permuted_Tcell_coverage.pdf", width = 6.5, height = 2)
 
+rdf %>% group_by(celltype, donor, variable) %>%
+  summarize(prop0 = sum(value < 0.01)/n()*100) -> count_zeros_df
+count_zeros_df %>% arrange((donor))
+
+count_zeros_df %>%
+  ggplot(aes(x = celltype, y = prop0, fill = variable)) +
+  geom_bar(stat = "identity", position = 'dodge2') +
+  facet_wrap(~donor) +
+  scale_fill_manual(values = c("black", "darkgrey")) +
+  pretty_plot(fontsize = 7)  + theme(legend.position = "none") + 
+  labs( x= "Celltype", y = "Heteroplasmy (%)")
+
+
+
+# see if this replicates for melas
+# TLDR-- it does, but it isn't as striking-- so good corroboration but won't show in MS
+make_combined_df_melas <- function(x){
+  hetdf <- fread(paste0("../../melas_kss_cpeo/data/melas-metadata/",x,"_meta.tsv"))
+  merge(
+    hetdf, 
+    fread(paste0("../../melas_kss_cpeo/data/reference_projections/melas//",x,"_refmapped.csv.gz")),
+    by.y = "cb", by.x = "barcode"
+  ) 
+}
+
+# append permuted heteroplasmy
+add_permuted_heteroplasmy_melas <- function(df, celltype, donor){
+  df <- df %>% filter(predicted.celltype.l2 == celltype)
+  set.seed(1)
+  df$permuted_heteroplasmy <- rbinom(n = length(df$coverage), size = df$coverage, prob = sum(df$X3243_G)/sum(df$coverage))/df$coverage*100
+  reshape2::melt(df[,c("heteroplasmy", "permuted_heteroplasmy")]) %>% 
+    mutate(donor, celltype)
+}
+
+dfp21 <- make_combined_df_melas("P21") 
+dfp9 <- make_combined_df_melas("P9")
+dfp30 <- make_combined_df_melas("P30")
+
+rdf_melas <- rbind(
+  add_permuted_heteroplasmy_melas(dfp21, "CD8 Naive", "P21"),
+  add_permuted_heteroplasmy_melas(dfp21, "CD8 TEM", "P21"),
+  add_permuted_heteroplasmy_melas(dfp21, "MAIT", "P21"),
+  add_permuted_heteroplasmy_melas(dfp9, "CD8 Naive", "P9"),
+  add_permuted_heteroplasmy_melas(dfp9, "CD8 TEM", "P9"),
+  add_permuted_heteroplasmy_melas(dfp9, "MAIT", "P9"),
+  add_permuted_heteroplasmy_melas(dfp30, "CD8 Naive", "P30"),
+  add_permuted_heteroplasmy_melas(dfp30, "CD8 TEM", "P30"),
+  add_permuted_heteroplasmy_melas(dfp30, "MAIT", "P30")
+)
+
+rdf_melas %>% group_by(celltype, donor, variable) %>%
+  summarize(prop0 = sum(value < 0.01)/n()*100)
+
 

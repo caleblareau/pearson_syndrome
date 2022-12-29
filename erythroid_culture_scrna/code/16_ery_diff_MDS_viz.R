@@ -32,17 +32,35 @@ oxphos_pathway <- c("SNORD138","MIR4691","COX17","MIR7113","ATP5PD","ATP5MG","UQ
                     "SCO1","SDHA","SDHB","SDHC","SDHD","SURF1","UCP1","UCP2","UCP3","UQCRB","UQCRC1",
                     "UQCRC2","UQCRFS1","UQCRH","SLC25A14","COX7A2L","COX5A","ATP5IF1","SLC25A27","ATP5MF")
 
+# Define 
+library(annotables)
+regions <- data.frame(
+  Chrom = c(7,7,7),
+  Start = c(0, 110000000,61528020),
+  End = c(58169653, 159345973,159345973),
+  Length = c(58169653, 499345973,97817953),
+  row.names = c("7p","X7del", "7q")
+)
+del7qgenes <- grch38 %>%
+  filter(start > 110000000 & chr == "7") %>% pull(symbol)
+
+
 d12merge$gene_class <- case_when(
+  d12merge$Row.names  %in% del7qgenes ~ "zdel7q",
   d12merge$Row.names  %in% oxphos_pathway ~ "OXPHOS",
   d12merge$Row.names  %in% cholesterol ~ "cholesterol",
   d12merge$Row.names  %in% heme ~ "heme",
   d12merge$Row.names  %in% serine_glycine ~ "serine_glycine",
-  TRUE ~ "zother"
+  TRUE ~ "zzother"
 )
 
-d12merge$alpha <- ifelse(d12merge$gene_class == "zother", 0.1, 1)
+d12merge %>% group_by(gene_class) %>%
+  summarize(val = mean(abs(signedTstat.x - signedTstat.y + 0.01)), n = n())
+
+d12merge$alpha <- ifelse(d12merge$gene_class == "zzother", 0.1, 1)
 p2 <- ggplot(d12merge %>% arrange(desc(gene_class)), aes(x = signedTstat.x, y = signedTstat.y, color = gene_class, alpha = alpha)) +
   geom_point(size = 0.4) +  labs(x = "Pearson-MDS / Healthy statistic", y = "Pearson-no MDS / Healthy statistic") +
-  scale_color_manual(values = c("dodgerblue3", "firebrick", "green4", "purple2", "black")) +
-  pretty_plot(fontsize= 8) + L_border() + theme(legend.position = "none")
+  scale_color_manual(values = c("dodgerblue3", "firebrick", "green4", "purple2","orange", "black")) +
+  pretty_plot(fontsize= 8) + L_border() + theme(legend.position = "none") +
+  geom_abline(intercept = 0, slope = 1, linetype = 2)
 cowplot::ggsave2(p2, file = "../plots/scatter_alpha_yn_mds.pdf", width = 2.2, height = 2.2)

@@ -123,6 +123,37 @@ rrd %>%
 cowplot::ggsave2(p1, file = "../output/precision_sim.pdf", width = 1.8, height = 2.2)
 
 #----------------------
+# Simulate sensitivity
+#----------------------
+conditions_df_sensitivity <- data.frame(
+  ndelreads = round(c(300,500, 700, 900, 1100, 1300, 1500, 2000)*4/20),
+  nwtreads = c(300,500, 700, 900, 1100, 1300, 1500, 2000)*4,
+  ndelreads2 = c(300,500, 700, 900, 1100, 1300, 1500, 2000)*2
+)
+rrd_sens <- rbind(
+  process_del_set(del1, 13157,15477, conditions_df_sensitivity, "del1", 100),
+  process_del_set(del2, 9232,13413, conditions_df_sensitivity, "del2", 100),
+  process_del_set(del3, 8482,13445, conditions_df_sensitivity, "del3", 100)
+)
+
+rrd_sens_10 <- rrd_sens
+
+rrd_sens %>%
+  group_by(index_id, del) %>%
+  summarize(mean(coverage),
+            clip = mean(clip_heteroplasmy>=1)*100,  
+            cov = mean(coverage_heteroplasmy>=1)*100
+  ) %>% data.frame() %>%
+  reshape2::melt(id.vars = c("index_id", "del", "mean.coverage.")) %>%
+  ggplot(aes(x = mean.coverage., y = value, color = variable, shape = del)) +
+  geom_point() + geom_line() +
+  scale_color_manual(values = c("firebrick", "black")) +
+  labs(x = "Simulated coverage", y = "% cells with deletion detected", shape = "", color = "") +
+  pretty_plot(fontsize = 7) + L_border() + 
+  theme(legend.position = "none") + scale_y_continuous(limits = c(50, 100)) -> plot_sensistivity
+cowplot::ggsave2(plot_sensistivity, file = "../output/sensitivity_plot.pdf", width = 2, height = 2)
+
+#----------------------
 # Simulate mean absolute error
 #----------------------
 

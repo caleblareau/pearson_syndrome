@@ -6,23 +6,23 @@ library(Seurat)
 library(Signac)
 
 # Import and set up meta data
-sc <- fread("singlecell.csv") %>%
+sc <- fread("../data/pt1_singlecell.csv.gz") %>%
   filter(is__cell_barcode == 1)
 mdf <- merge(rbind(
-  fread("Pearson_HC_PT1_mix_CD3_CD28_Day14_rep1_assign.tsv"),
-  fread("Pearson_HC_PT1_mix_CD3_CD28_Day14_rep2_assign.tsv") %>%
+  fread("../output/Pearson_HC_PT1_mix_CD3_CD28_Day14_rep1_assign.tsv"),
+  fread("../output/Pearson_HC_PT1_mix_CD3_CD28_Day14_rep2_assign.tsv") %>%
     mutate(barcode = paste0(substr(barcode, 1, 16), "-2"))
 ), sc, by = "barcode") %>% mutate(frip = peak_region_fragments/passed_filters*100)
 mdf <- mdf %>% filter(assign == "Pearson") %>% filter(frip > 30)
 rownames(mdf) <- mdf$barcode
 
 # Process mtscatac data
-peaks <- Read10X_h5("filtered_peak_bc_matrix.h5")
+peaks <- Read10X_h5("../data/pt1_filtered_peak_bc_matrix.h5")
 chrom_assay <- CreateChromatinAssay(
   counts = peaks[,rownames(mdf)],
   sep = c(":", "-"),
   genome = NULL,
-  fragments = 'fragments.tsv.gz',
+  fragments = '../../../pearson_large_data_files/input/tcell-culture/pt1_fragments.tsv.gz',
   min.cells = 1,
   min.features = 1
 )
@@ -36,6 +36,7 @@ so <- RunTFIDF(so) %>%
 
 DefaultAssay(so) <- "peaks"
 so <- FindClusters(so, resolution = 0.5)
+dim(so)
 DimPlot(so, reduction = "umap")
 FeaturePlot(so, features = "heteroplasmy") & scale_color_viridis()
 

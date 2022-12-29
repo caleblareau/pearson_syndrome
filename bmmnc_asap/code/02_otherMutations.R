@@ -6,7 +6,7 @@ if(FALSE){
   source("../../global_functions/variant_calling.R")
   
   import_channel <- function(channeln){
-    se <- readRDS(paste0("../../../pearson_large_data_files/input/bmmnc/mgatk//Pearson-ASAP-BMMNC-c",channeln,"_mgatk.rds"))
+    se <- readRDS(paste0("../../../pearson_large_data_files/input/bmmnc/mgatk/Pearson-ASAP-BMMNC-c",channeln,"_mgatk.rds"))
     colnames(se) <- gsub("-1", paste0("-", as.character(channeln)), colnames(se))
     se
   }
@@ -23,7 +23,7 @@ if(FALSE){
 
 # Overlap other point mutations with embedding
 af <- readRDS("../output/interesting_AFs.rds")
-pearson_asap <- readRDS( "../../../pearson_large_data_files/output/asap/pearson_asap_master_object.rds")
+pearson_asap <- readRDS( "../../../pearson_large_data_files/output//bone_marrow/pearson_asap_master_object.rds")
 
 
 af_df <- (data.frame(t(af) , barcode = colnames(af)))
@@ -33,6 +33,8 @@ df <- data.frame(pearson_asap@reductions$umap@cell.embeddings, cluster = pearson
                  reads_all = pearson_asap@meta.data$reads_all,
                  chr7 = pearson_asap@meta.data$chr7)
 mdf <- merge(af_df, df, by = "barcode")
+
+
 
 # Be more stringent on filtering
 mdf <- mdf %>% dplyr::filter(X7del> 0.6 | X7del < 0.1)

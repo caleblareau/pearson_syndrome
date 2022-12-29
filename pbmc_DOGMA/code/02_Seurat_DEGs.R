@@ -33,6 +33,11 @@ cor_df <- data.frame(cor = cor(data.matrix(t(tcells@assays$RNA@data)), tcells$cl
 cor_df$gene <- rownames(cor_df)
 cor_df <- cor_df[complete.cases(cor_df),] 
 cor_df$rank <- 1:dim(cor_df)[1]
+
+cor.test(tcells@assays$RNA@data["OPA1",],
+         tcells$clip_het)
+
+cor_df %>% filter(gene %in% c("OPA1", "MFN1", "MFN2", "DNM1L", "FOS", "FOSB"))
 cor_df$color <- case_when(
   cor_df$gene %in% mito ~ "mito", 
   TRUE ~ "other"
