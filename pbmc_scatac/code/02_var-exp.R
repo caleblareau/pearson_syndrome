@@ -13,9 +13,9 @@ make_combined_df <- function(x){
   ) 
   
 }
-dfp9 <- make_combined_df("P9") 
-dfp21 <- make_combined_df("P21")
-dfp30 <- make_combined_df("P30")
+dfp9 <- make_combined_df("P9") ; dfp9$reads_all <- dfp9$coverage
+dfp21 <- make_combined_df("P21"); dfp21$reads_all <- dfp21$coverage
+dfp30 <- make_combined_df("P30"); dfp30$reads_all <- dfp30$coverage
 
 # Add Heteroplasmy
 df_BCI <- merge(fread("../data/deletion_heteroplasmy/del_PBMC_BCI.deletion_heteroplasmy.tsv") %>%
@@ -40,22 +40,37 @@ prop0compute <- function(ssdf){
  # ks.test(ssdf$heteroplasmy,ssdf$permuted_heteroplasmy)$p.value
   
 }
+permute_heteroplasmy <- function(df){
+  rbinom(n = length(df$reads_all), size = df$reads_all,
+         prob = sum(df$reads_del)/sum(df$reads_all))/df$reads_all*100
+}
 
-ct <- unique(c(df_BCI$predicted.celltype.l2, df_CCF$predicted.celltype.l2, df_PT3$predicted.celltype.l2))
+ct_count <- table(c(df_BCI$predicted.celltype.l2, df_CCF$predicted.celltype.l2, df_PT3$predicted.celltype.l2))
+ct <- names(ct_count[ct_count> 100])
 #ct <- c("MAIT", "NK", "B naive", "CD8 TEM", "CD4 TCM")
 donors <- c("PT1", "PT2", "PT3", "xM9", "yM21",  "zM30")
 donor_df_list <- list(df_BCI, df_CCF, df_PT3, dfp9, dfp21, dfp30)
+donors <- c("PT1", "PT2", "PT3")
+donor_df_list <- list(df_BCI, df_CCF, df_PT3)
+
 lapply(ct, function(ctx){
-  lapply(1:6, function(idx){
+  lapply(1:length(donors), function(idx){
     subset_df1 <- donor_df_list[[idx]] %>% filter(predicted.celltype.l2 == ctx)
     data.frame(
       donor = donors[idx],
       celltype = ctx,
       n = dim(subset_df1)[1],
-      prop0 = prop0compute(subset_df1)*100
-    )
+      prop0 = round(prop0compute(subset_df1)*100,2),
+      var_obs = round(var(subset_df1$heteroplasmy),2),
+      var_null = round(var(permute_heteroplasmy(subset_df1)),2)
+    ) %>% mutate(prop_unexp = round((var_obs-var_null)/var_obs*100,2))
   }) %>% rbindlist() 
 })%>% rbindlist() -> odf
+
+write.table(odf, file = "../plots/supp-table-var-explained.tsv", 
+            sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+odf %>% arrange(desc(prop_unexp))
 
 df_BCI%>% group_by(predicted.celltype.l1, predicted.celltype.l2) %>%
   summarize(count =n()) %>% top_n(1,count)
