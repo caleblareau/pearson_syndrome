@@ -16,8 +16,12 @@ data.frame(
   mid,
   length = nchar(reads)
 ) -> rdf
+
 rdf[complete.cases(rdf),] %>%
   filter(length < 2500 & length > 100) -> rdf_filt
+
+summary(rdf_filt$mid)
+mean(rdf_filt$mid == 203)
 rdf_filt %>%
   mutate(pct_before = mid/length*100, pct_after = (length-mid)/length*100) %>%
   arrange((mid)) %>%
