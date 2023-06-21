@@ -1,9 +1,9 @@
 # Pearson Syndrome single-cell genomics analysis repository
 _Caleb Lareau_ 
 
-This repository contains code needed to reproduce analyses and figures assocaited with this work:
+This repository contains code needed to reproduce analyses and figures associated with this work:
 
-Lareau, _et al._ *Single-cell multi-omics reveals dynamics of purifying selection of pathogenic mitochondrial DNA across human immune cells*. 2022 
+Lareau, _et al._ *Single-cell multi-omics of mitochondrial DNA disorders reveals dynamics of purifying selection across human immune cells*. 2023
 
 This table coordinates the different analysis folders (in addition to extended data figures)
 
@@ -19,6 +19,6 @@ Figure 7 | erythroid_culture_scatac,erythroid_culture_scrna
 
 The single-cell large mitochondrial DNA genotyping workflow is available in the [mgatk-del module, documented here](https://github.com/caleblareau/mgatk/wiki/Large-deletion-calling-and-heteroplasmy-estimation). 
 
-Questions? Raise an issue (preferably) or [email Caleb](mailto:clareau@stanford.edu)
+Questions? Raise an issue on this repository
 
 <br><br>
